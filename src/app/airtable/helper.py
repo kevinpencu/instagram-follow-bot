@@ -1,6 +1,7 @@
 from app.config import get_cfg
 from pyairtable import Api
 from dataclasses import dataclass
+from app.logger import get_logger
 import requests
 
 config = get_cfg()["airtable"]
@@ -10,6 +11,7 @@ config = get_cfg()["airtable"]
 class ProfileDataRow:
     ads_power_id: str
     username: str
+    target_download_urls: list[str]
 
 
 def get_api():
@@ -22,17 +24,8 @@ def get_table():
 
 def get_profiles():
     return get_table().all(
-        fields=["Targets", "AdsPower ID", "Username"], max_records=15
+        fields=["Targets", "AdsPower ID", "Username"], max_records=1
     )
-
-
-def get_profiles_mapped() -> list[ProfileDataRow]:
-    return [
-        ProfileDataRow(
-            x["fields"]["AdsPower ID"], x["fields"]["Username"]
-        )
-        for x in get_profiles()
-    ]
 
 
 def get_targets_download_urls(row: dict):
@@ -45,12 +38,26 @@ def get_targets_download_urls(row: dict):
     )
 
 
-def fetch_and_parse_usernames(row: dict) -> list[str]:
+def get_profiles_mapped() -> list[ProfileDataRow]:
+    return [
+        ProfileDataRow(
+            x["fields"]["AdsPower ID"],
+            x["fields"]["Username"],
+            get_targets_download_urls(x),
+        )
+        for x in get_profiles()
+    ]
+
+
+def fetch_and_parse_usernames(data: ProfileDataRow) -> list[str]:
+    get_logger().info("[AIRTABLE]: Fetching & Parsing Usernames")
     downloads = []
 
-    for link in get_targets_download_urls(row):
+    for link in data.target_download_urls:
+        get_logger().info(f"[AIRTABLE]: Downloading {link}")
         resp = requests.get(link)
         if resp.status_code != 200:
+            get_logger().error(f"[AIRTABLE]: Download Failed {link}")
             continue
         downloads.append(resp.text)
 

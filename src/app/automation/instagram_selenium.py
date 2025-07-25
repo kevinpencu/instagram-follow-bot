@@ -1,83 +1,91 @@
 from selenium import webdriver
+import time
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 from app.selenium_utils import navigate_to
+from app.logger import get_logger
+from selenium.common.exceptions import (
+    TimeoutException,
+)
+from enum import Enum
 
 
-def go_to_base_sync(driver: webdriver.Chrome):
-    if "instagram.com" in driver.current_url:
-        return
-    navigate_to("https://instagram.com")
+class OperationState(Enum):
+    AlreadyFollowed = 0
+    FollowedOrRequested = 1
+    FailedToFollow = 2
+    AccountIsSuspended = 3
+    FollowBlocked = 4
 
 
 def go_to_user(driver: webdriver.Chrome, username: str):
-    if username.lower() in driver.current_url:
-        return
     navigate_to(driver, f"https://instagram.com/{username}")
 
 
 def is_account_suspended(driver: webdriver.Chrome):
-    go_to_base_sync(driver)
-
-    # TODO(HSO): Ask Vik for a suspended instagram AdsPower session
-    # To have a more detailed implementation
     return "/accounts/suspended" in driver.current_url
 
 
-def is_account_followblocked(driver: webdriver.Chrome):
-    page_source = self.driver.page_source.lower()
-    follow_block_indicators = [
-        "try again later",
-        "action blocked",
-        "we restrict certain activity",
-        "temporarily blocked",
-        "slow down",
-        "too many requests",
-    ]
-
-    for x in indicators:
-        if x in page_source:
-            return True
-
-    return False
+def is_page_followed_or_requested(driver: webdriver.Chrome):
+    return (
+        len(
+            driver.find_elements(
+                By.XPATH,
+                "//div[text()='Following'] | //div[text()='Requested']",
+            )
+        )
+        > 0
+    )
 
 
-def is_page_public(driver: webdriver.Chrome):
-    page_source = self.driver.page_source.lower()
-    indicators = [
-        "this account is private",
-        "only approved followers can see",
-        "follow to see their photos and videos",
-        "this account is private.",
-        "account is private",
-    ]
+def follow_current_user(driver: webdriver.Chrome, username: str):
+    elems = driver.find_elements(By.XPATH, "//div[text()='Follow']")
+    if not elems:
+        get_logger().error(
+            f"[INSTA-SELENIUM]: Following {username} button not found"
+        )
+        return False
 
-    for x in indicators:
-        if x in page_source:
-            return False
+    get_logger().info(
+        f"[INSTA-SELENIUM]: Following {username} button triggering"
+    )
+    elems[0].click()
 
     return True
 
 
-def is_page_followed_or_requested(driver: webdriver.Chrome):
-    success_selectors = [
-        "//button[text()='Following']",
-        "//button[text()='Requested']",
-        "//button[contains(text(), 'Following') and not(contains(text(), 'Follow '))]",
-        "//button[contains(text(), 'Requested')]",
-        "//*[contains(@class, 'button') and text()='Following']",
-        "//*[contains(@class, 'button') and text()='Requested']",
-    ]
+def run_follow_action(driver: webdriver.Chrome, username: str):
+    get_logger().info(f"[INSTA-SELENIUM]: Navigating to user {username}")
+    go_to_user(driver, username)
 
-    for selector in success_selectors:
-        try:
-            success_button = self.driver.find_element(By.XPATH, selector)
-            if success_button and success_button.is_displayed():
-                return True
-        except Exception as e:
-            pass
+    get_logger().info(
+        f"[INSTA-SELENIUM]: Checking if account is suspended..."
+    )
+    if is_account_suspended(driver):
+        get_logger()(
+            f"[INSTA-SELENIUM]: Account is suspended. Abandoning..."
+        )
+        return OperationState.AccountIsSuspended
 
-    return False
+    get_logger().info(
+        f"[INSTA-SELENIUM]: Checking if page is already followed or requested..."
+    )
 
+    if is_page_followed_or_requested(driver):
+        get_logger().info(
+            f"[INSTA-SELENIUM]: Page is already followed or requested. Abandoning..."
+        )
+        return OperationState.AlreadyFollowed
 
-def follow_user(driver: webdriver.Chrome, username: str):
-    pass
+    get_logger().info(f"[INSTA-SELENIUM]: Following user...")
+
+    followed = follow_current_user(driver, username)
+    if not followed:
+        return OperationState.FailedToFollow
+
+    time.sleep(3)
+    if is_page_followed_or_requested(driver):
+        return OperationState.FollowedOrRequested
+
+    return OperationState.FollowBlocked

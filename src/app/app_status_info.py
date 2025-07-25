@@ -15,7 +15,11 @@ class ActiveProfileStats:
     ads_power_id: str
     username: str
     bot_status: BotStatus
+    total_accounts: int
     total_followed: int
+    total_follow_failed: int
+    total_already_followed: int
+    total_private_accounts: int
 
 
 @dataclass

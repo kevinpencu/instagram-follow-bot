@@ -31,7 +31,7 @@ class AdsPowerApi(BaseApi):
             pass
 
         if not ok:
-            get_logger(__name__).fatal(f"[ADSPOWER]: API Not OK\n{details}\n")
+            get_logger().fatal(f"[ADSPOWER]: API Not OK\n{details}\n")
 
         return ok
 
@@ -48,8 +48,8 @@ class AdsPowerApi(BaseApi):
         resp = self.get("/browser/start", payload)
         json = resp.json()
         if json.get("code") != 0:
-            get_logger(__name__).error("[ADSPOWER]: Failed to start profile.")
-            get_logger(__name__).error(f"[ADSPOWER]: {json}")
+            get_logger().error("[ADSPOWER]: Failed to start profile.")
+            get_logger().error(f"[ADSPOWER]: {json}")
             return None
 
         return StartProfileResponse(

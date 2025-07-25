@@ -1,7 +1,9 @@
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 def close_tabs(driver: webdriver.Chrome):
+    return
     windows = driver.window_handles
     if len(windows) == 1:
         return
@@ -11,14 +13,5 @@ def close_tabs(driver: webdriver.Chrome):
         driver.close()
 
 
-def wait_for_page_load(driver: webdriver.Chrome, timeout=10):
-    WebDriverWait(driver, timeout).until(
-        lambda d: d.execute_script("return document.readyState")
-        == "complete"
-    )
-
-
 def navigate_to(driver: webdriver.Chrome, url: str):
-    driver.get("https://instagram.com")
-    wait_for_page_load(driver)
-    pass
+    driver.get(url)
