@@ -1,6 +1,5 @@
 from app.airtable.helper import (
     get_profiles,
-    fetch_and_parse_usernames,
     get_profiles_mapped,
 )
 from flask import Flask, request, jsonify
