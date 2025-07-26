@@ -125,7 +125,7 @@ export default function Index() {
       } else {
         setIsStartingSelected(true);
         const selectedAdsPowerIds = Array.from(selectedRows);
-        await apiService.startSelected(selectedAdsPowerIds);
+        await apiService.startSelected(selectedAdsPowerIds, maxWorkers);
       }
       fetchStatus();
       setModalOpen(false);

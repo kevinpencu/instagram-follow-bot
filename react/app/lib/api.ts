@@ -62,10 +62,13 @@ class ApiService {
     });
   }
 
-  async startSelected(adsPowerIds: string[]): Promise<{}> {
+  async startSelected(adsPowerIds: string[], maxWorkers?: number): Promise<{}> {
     return this.request<{}>('/start-selected', {
       method: 'POST',
-      body: JSON.stringify({ adsPowerIds }),
+      body: JSON.stringify({ 
+        adsPowerIds,
+        ...(maxWorkers && { maxWorkers })
+      }),
     });
   }
 }
