@@ -41,6 +41,13 @@ class AppStatusInfo:
             if stat is None:
                 return None
             return stat
+    
+    def _get_profile_unlocked(self, ads_power_id: str) -> ActiveProfileStats:
+        """Internal method to get profile without acquiring lock - caller must hold lock"""
+        stat = self._data.active_profiles.get(ads_power_id)
+        if stat is None:
+            return None
+        return stat
 
     def init_profile(
         self, username: str, ads_power_id: str, status: BotStatus
@@ -56,28 +63,28 @@ class AppStatusInfo:
 
     def set_total(self, ads_power_id: str, total: int):
         with self._lock:
-            profile = self.get_profile(ads_power_id)
+            profile = self._get_profile_unlocked(ads_power_id)
             if profile is None:
                 return
             profile.total_accounts = total
 
     def increment_total_followed(self, ads_power_id: str):
         with self._lock:
-            profile = self.get_profile(ads_power_id)
+            profile = self._get_profile_unlocked(ads_power_id)
             if profile is None:
                 return
             profile.total_followed = profile.total_followed + 1
 
     def increment_total_follow_failed(self, ads_power_id: str):
         with self._lock:
-            profile = self.get_profile(ads_power_id)
+            profile = self._get_profile_unlocked(ads_power_id)
             if profile is None:
                 return
             profile.total_follow_failed = profile.total_follow_failed + 1
 
     def increment_already_followed(self, ads_power_id: str):
         with self._lock:
-            profile = self.get_profile(ads_power_id)
+            profile = self._get_profile_unlocked(ads_power_id)
             if profile is None:
                 return
             profile.total_already_followed = (
@@ -85,11 +92,13 @@ class AppStatusInfo:
             )
 
     def schedule(self, ads_power_id: str):
-        self._data.scheduled_ads_power_ids.append(ads_power_id)
+        with self._lock:
+            self._data.scheduled_ads_power_ids.append(ads_power_id)
 
     def unschedule(self, ads_power_id: str):
-        if ads_power_id in self._data.scheduled_ads_power_ids:
-            self._data.scheduled_ads_power_ids.remove(ads_power_id)
+        with self._lock:
+            if ads_power_id in self._data.scheduled_ads_power_ids:
+                self._data.scheduled_ads_power_ids.remove(ads_power_id)
 
     def get_all(self):
         with self._lock:
