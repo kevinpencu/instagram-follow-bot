@@ -1,0 +1,19 @@
+2025-07-23 03:50:34,382 - INFO - Fetching profiles from Airtable view viwJjqdgpEfRfiE2E...
+2025-07-23 03:50:35,354 - INFO - Total records fetched: 2
+2025-07-23 03:50:35,354 - INFO - Querying 2 AdsPower profile names...
+2025-07-23 03:50:35,354 - INFO - AdsPower IDs to query: ['kwyc4ml', 'kwy9kug']
+2025-07-23 03:52:51,811 - INFO - Got 2 AdsPower profile names: {'kwyc4ml': 'Maddie 1', 'kwy9kug': 'Maddie 3171'}
+2025-07-23 03:52:51,811 - INFO - Loaded 2 profiles from Airtable
+2025-07-23 03:52:51,811 - INFO - Loaded 2 profiles
+2025-07-23 03:52:51,848 - INFO - Loaded 54690 usernames into memory queue
+2025-07-23 03:52:51,848 - INFO - Loaded 54690 usernames
+2025-07-23 03:52:51,848 - INFO - Dashboard at http://localhost:8080
+2025-07-23 03:52:51,848 - INFO - ✨ ULTIMATE FIX APPLIED:
+2025-07-23 03:52:51,848 - INFO -   - Separate dashboard cache from profile operations
+2025-07-23 03:52:51,848 - INFO -   - Multiple thread pools for different tasks
+2025-07-23 03:52:51,848 - INFO -   - Async file I/O - no blocking
+2025-07-23 03:52:51,849 - INFO -   - Ultra-fast request handling
+2025-07-23 03:52:51,849 - INFO -   - Smart batching for Start All
+2025-07-23 03:52:51,849 - INFO -   - Profiles start in order from lowest to highest ID
+2025-07-23 03:52:51,849 - INFO - 🚀 Dashboard will NEVER freeze again!
+2025-07-23 03:52:51,851 - INFO - Server started successfully on port 8080

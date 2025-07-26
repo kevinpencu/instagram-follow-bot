@@ -1,0 +1,22 @@
+2025-07-23 17:06:11,799 - INFO - Fetching profiles from Airtable view viwJjqdgpEfRfiE2E...
+2025-07-23 17:06:15,637 - INFO - Total records fetched: 2
+2025-07-23 17:06:15,637 - INFO - Querying 2 AdsPower profile names...
+2025-07-23 17:06:15,637 - INFO - AdsPower IDs to query: ['kwyc4ml', 'kwy9kug']
+2025-07-23 17:06:25,682 - INFO - Got 2 AdsPower profile names: {'kwyc4ml': {'name': 'Maddie 1', 'serial_number': '42201'}, 'kwy9kug': {'name': 'Maddie 3171', 'serial_number': '35576'}}
+2025-07-23 17:06:25,682 - INFO - Loaded 2 profiles from Airtable
+2025-07-23 17:06:25,682 - INFO - Loaded 2 profiles
+2025-07-23 17:06:25,720 - INFO - Loaded 54690 usernames into memory queue
+2025-07-23 17:06:25,720 - INFO - Loaded 54690 usernames
+2025-07-23 17:06:25,720 - INFO - Dashboard at http://localhost:8080
+2025-07-23 17:06:25,720 - INFO - ✨ ULTIMATE FIX APPLIED:
+2025-07-23 17:06:25,720 - INFO -   - Separate dashboard cache from profile operations
+2025-07-23 17:06:25,720 - INFO -   - Multiple thread pools for different tasks
+2025-07-23 17:06:25,720 - INFO -   - Async file I/O - no blocking
+2025-07-23 17:06:25,720 - INFO -   - Ultra-fast request handling
+2025-07-23 17:06:25,720 - INFO -   - Smart batching for Start All
+2025-07-23 17:06:25,720 - INFO -   - Profiles start in order from lowest to highest ID
+2025-07-23 17:06:25,720 - INFO - 🚀 Dashboard will NEVER freeze again!
+2025-07-23 17:06:25,723 - INFO - Server started successfully on port 8080
+2025-07-23 17:07:28,107 - INFO - Profile 1 started (max 300 follows)
+2025-07-23 17:07:33,112 - ERROR - Error checking AdsPower connection: HTTPConnectionPool(host='local.adspower.net', port=50325): Read timed out. (read timeout=5)
+2025-07-23 17:07:47,858 - ERROR - Failed to stop profile No.42201: User_id is not open
