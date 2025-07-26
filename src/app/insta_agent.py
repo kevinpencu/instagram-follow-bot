@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify
 from app.adspower.api_wrapper import adspower
 from concurrent.futures import ThreadPoolExecutor
 from app.app_status_info import app_status_info, BotStatus
-from app.executor import executor
+from app.executor import executor, get_executor
 from app.logger import get_logger
 from app.adspower_selenium import run_selenium
 from app.automation.instagram_selenium import (
@@ -42,6 +42,8 @@ def run_single(profile: ProfileDataRow):
                 profile.ads_power_id, BotStatus.NoTargets
             )
             return
+
+        # usernames = usernames[:4]
 
         get_logger().info(
             f"[INSTA-AGENT]: Fetched {len(usernames)} targets for profile {profile.username}..."
@@ -169,22 +171,23 @@ def run_single(profile: ProfileDataRow):
             )
 
 
-def do_start_profiles(profiles):
+def do_start_profiles(profiles, max_workers=4):
     """Common logic to start automation for a list of profiles"""
     for profile in profiles:
         app_status_info.schedule(profile.ads_power_id)
 
+    profile_executor = get_executor(max_workers)
     for profile in profiles:
-        executor.submit(run_single, profile)
+        profile_executor.submit(run_single, profile)
 
 
-def do_start_all():
+def do_start_all(max_workers=4):
     """Start automation for all profiles"""
     profiles = get_profiles_mapped()
-    do_start_profiles(profiles)
+    do_start_profiles(profiles, max_workers)
 
 
-def do_start_selected(ads_power_ids):
+def do_start_selected(ads_power_ids, max_workers=4):
     """Start automation for selected profiles by AdsPower IDs"""
     all_profiles = get_profiles_mapped()
     selected_profiles = [
@@ -202,12 +205,12 @@ def do_start_selected(ads_power_ids):
     get_logger().info(
         f"[INSTA-AGENT]: Starting automation for {len(selected_profiles)} selected profiles"
     )
-    do_start_profiles(selected_profiles)
+    do_start_profiles(selected_profiles, max_workers)
 
 
-def agent_start_all():
-    executor.submit(do_start_all)
+def agent_start_all(max_workers=4):
+    executor.submit(do_start_all, max_workers)
 
 
-def agent_start_selected(ads_power_ids: list):
-    executor.submit(do_start_selected, ads_power_ids)
+def agent_start_selected(ads_power_ids: list, max_workers=4):
+    executor.submit(do_start_selected, ads_power_ids, max_workers)

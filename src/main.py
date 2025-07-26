@@ -5,7 +5,7 @@ from app.airtable.helper import (
 from flask import Flask, request, jsonify
 from app.adspower.api_wrapper import adspower
 from app.app_status_info import app_status_info
-from app.executor import executor
+from app.executor import executor, get_executor
 from app.insta_agent import agent_start_all, agent_start_selected
 from app.logger import get_logger
 
@@ -29,7 +29,19 @@ def profiles():
 @app.route("/start-all", methods=["POST"])
 def start():
     try:
-        agent_start_all()
+        body = request.get_json() or {}
+        max_workers = body.get("maxWorkers", 4)
+        
+        if not isinstance(max_workers, int) or max_workers <= 0:
+            return (
+                jsonify(
+                    error="invalid_input",
+                    message="maxWorkers must be a positive integer",
+                ),
+                400,
+            )
+        
+        agent_start_all(max_workers)
         return {}
     except Exception as e:
         get_logger().error(f"[API]: Failed to start all agents: {str(e)}")
@@ -68,7 +80,18 @@ def start_selected():
                 400,
             )
 
-        agent_start_selected(ads_power_profile_ids)
+        max_workers = body.get("maxWorkers", 4)
+        
+        if not isinstance(max_workers, int) or max_workers <= 0:
+            return (
+                jsonify(
+                    error="invalid_input",
+                    message="maxWorkers must be a positive integer",
+                ),
+                400,
+            )
+        
+        agent_start_selected(ads_power_profile_ids, max_workers)
         return {}
     except Exception as e:
         get_logger().error(
