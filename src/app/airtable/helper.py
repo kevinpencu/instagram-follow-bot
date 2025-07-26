@@ -23,10 +23,18 @@ def get_table():
 
 
 def get_profiles():
-    return get_table().all(
+    table = get_table()
+    all_records = []
+    
+    for batch in table.iterate(
         fields=["Targets", "AdsPower ID", "Username"],
         view=config["viewId"],
-    )
+        page_size=100
+    ):
+        all_records.extend(batch)
+
+    get_logger().info(f"[AIRTABLE]: Fetched {len(all_records)} profile records")
+    return all_records
 
 
 def get_targets_download_urls(row: dict):
