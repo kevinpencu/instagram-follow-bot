@@ -61,7 +61,7 @@ def is_logged_out(driver: webdriver.Chrome):
         By.XPATH,
         "//div[text()='Log in'] | //div[text()='Sign up for Instagram']",
     )
-    return len(elems) <= 0
+    return len(elems) > 0
 
 
 def run_follow_action(driver: webdriver.Chrome, username: str):
