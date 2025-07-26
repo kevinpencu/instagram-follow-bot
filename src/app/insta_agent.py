@@ -145,20 +145,40 @@ def run_single(profile: ProfileDataRow):
             get_logger().error(f"[INSTA-AGENT]: Failed to stop AdsPower profile {profile.username}: {str(e)}")
 
 
-def do_start_all():
-    profiles = get_profiles_mapped()
+def do_start_profiles(profiles):
+    """Common logic to start automation for a list of profiles"""
     for profile in profiles:
         app_status_info.schedule(profile.ads_power_id)
 
     for profile in profiles:
         executor.submit(run_single, profile)
-        #run_single(profile)
+
+
+def do_start_all():
+    """Start automation for all profiles"""
+    profiles = get_profiles_mapped()
+    do_start_profiles(profiles)
+
+
+def do_start_selected(ads_power_ids):
+    """Start automation for selected profiles by AdsPower IDs"""
+    all_profiles = get_profiles_mapped()
+    selected_profiles = [
+        profile for profile in all_profiles 
+        if profile.ads_power_id in ads_power_ids
+    ]
+    
+    if len(selected_profiles) == 0:
+        get_logger().warning(f"[INSTA-AGENT]: No profiles found for provided AdsPower IDs: {ads_power_ids}")
+        return
+        
+    get_logger().info(f"[INSTA-AGENT]: Starting automation for {len(selected_profiles)} selected profiles")
+    do_start_profiles(selected_profiles)
 
 
 def agent_start_all():
     executor.submit(do_start_all)
-    #do_start_all()
 
 
-def agent_start_selected(ids: list):
-    pass
+def agent_start_selected(ads_power_ids: list):
+    executor.submit(do_start_selected, ads_power_ids)
