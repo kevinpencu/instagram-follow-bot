@@ -18,7 +18,12 @@ def profiles():
         return get_profiles_mapped()
     except Exception as e:
         get_logger().error(f"[API]: Failed to get profiles: {str(e)}")
-        return jsonify(error="internal_error", message="Failed to fetch profiles"), 500
+        return (
+            jsonify(
+                error="internal_error", message="Failed to fetch profiles"
+            ),
+            500,
+        )
 
 
 @app.route("/start-all", methods=["POST"])
@@ -28,7 +33,12 @@ def start():
         return {}
     except Exception as e:
         get_logger().error(f"[API]: Failed to start all agents: {str(e)}")
-        return jsonify(error="internal_error", message="Failed to start agents"), 500
+        return (
+            jsonify(
+                error="internal_error", message="Failed to start agents"
+            ),
+            500,
+        )
 
 
 @app.route("/start-selected", methods=["POST"])
@@ -36,8 +46,14 @@ def start_selected():
     try:
         body = request.get_json()
         if body is None:
-            return jsonify(error="invalid_input", message="Request body is required"), 400
-            
+            return (
+                jsonify(
+                    error="invalid_input",
+                    message="Request body is required",
+                ),
+                400,
+            )
+
         ads_power_profile_ids = body.get("adsPowerIds")
         if (
             ads_power_profile_ids is None
@@ -55,8 +71,16 @@ def start_selected():
         agent_start_selected(ads_power_profile_ids)
         return {}
     except Exception as e:
-        get_logger().error(f"[API]: Failed to start selected agents: {str(e)}")
-        return jsonify(error="internal_error", message="Failed to start selected agents"), 500
+        get_logger().error(
+            f"[API]: Failed to start selected agents: {str(e)}"
+        )
+        return (
+            jsonify(
+                error="internal_error",
+                message="Failed to start selected agents",
+            ),
+            500,
+        )
 
 
 @app.route("/status")
@@ -65,7 +89,12 @@ def status():
         return app_status_info.get_all()
     except Exception as e:
         get_logger().error(f"[API]: Failed to get status: {str(e)}")
-        return jsonify(error="internal_error", message="Failed to fetch status"), 500
+        return (
+            jsonify(
+                error="internal_error", message="Failed to fetch status"
+            ),
+            500,
+        )
 
 
 if __name__ == "__main__":
