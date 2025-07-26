@@ -12,7 +12,7 @@ from flask_cors import CORS
 from app.errors import init_handler
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["http://localhost:5173"], methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
 init_handler(app)
 
 
