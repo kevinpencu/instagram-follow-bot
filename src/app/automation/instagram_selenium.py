@@ -52,6 +52,7 @@ def follow_current_user(driver: webdriver.Chrome, username: str):
         f"[INSTA-SELENIUM]: Following {username} button triggering"
     )
     elems[0].click()
+    time.sleep(3)
 
     return True
 
