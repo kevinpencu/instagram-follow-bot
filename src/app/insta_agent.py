@@ -91,46 +91,40 @@ def run_single(profile: ProfileDataRow):
         for username in usernames:
             result = run_follow_action(selenium_instance, username)
             if result == OperationState.AlreadyFollowed:
-                get_logger().error("AlreadyFollowed!")
+                get_logger().info("AlreadyFollowed!")
                 app_status_info.increment_already_followed(
                     profile.ads_power_id
                 )
-                get_logger().error("User Done!")
                 continue
 
             if result == OperationState.FollowedOrRequested:
-                get_logger().error("FollowedOrRequested!")
+                get_logger().info("FollowedOrRequested!")
                 app_status_info.increment_total_followed(
                     profile.ads_power_id
                 )
-                get_logger().error("User Done!")
                 continue
 
             if result == OperationState.FailedToFollow:
-                get_logger().error("FailedToFollow!")
+                get_logger().info("FailedToFollow!")
                 app_status_info.increment_total_follow_failed(
                     profile.ads_power_id
                 )
-                get_logger().error("User Done!")
                 continue
 
             if result == OperationState.AccountIsSuspended:
-                get_logger().error("AccountIsSuspended!")
+                get_logger().info("AccountIsSuspended!")
                 app_status_info.set_status(
                     profile.ads_power_id, BotStatus.AccountIsSuspended
                 )
-                get_logger().error("User Done!")
                 break
 
             if result == OperationState.FollowBlocked:
-                get_logger().error("FollowBlocked!")
+                get_logger().info("FollowBlocked!")
                 app_status_info.set_status(
                     profile.ads_power_id, BotStatus.FollowBlocked
                 )
-                get_logger().error("User Done!")
                 break
                 
-        # Mark as done if we processed all usernames without errors
         current_profile = app_status_info.get_profile(profile.ads_power_id)
         if current_profile and current_profile.bot_status == BotStatus.Running.value:
             app_status_info.set_status(profile.ads_power_id, BotStatus.Done)
@@ -140,10 +134,8 @@ def run_single(profile: ProfileDataRow):
         get_logger().error(f"[INSTA-AGENT]: Run single failed for profile {profile.username}: {str(e)}")
         app_status_info.set_status(profile.ads_power_id, BotStatus.Failed)
     finally:
-        # Always try to close selenium and stop profile
         try:
-            if 'selenium_instance' in locals():
-                selenium_instance.quit()
+            selenium_instance.quit()
         except Exception as e:
             get_logger().error(f"[INSTA-AGENT]: Failed to quit selenium for profile {profile.username}: {str(e)}")
             
