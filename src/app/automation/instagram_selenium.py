@@ -63,7 +63,7 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
         f"[INSTA-SELENIUM]: Checking if account is suspended..."
     )
     if is_account_suspended(driver):
-        get_logger()(
+        get_logger().error(
             f"[INSTA-SELENIUM]: Account is suspended. Abandoning..."
         )
         return OperationState.AccountIsSuspended
