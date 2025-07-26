@@ -70,11 +70,23 @@ def run_single(profile: ProfileDataRow):
             f"[INSTA-AGENT]: Profile {profile.username} AdsPower started"
         )
 
-        selenium_instance = run_selenium(start_profile_response)
+        try:
+            selenium_instance = run_selenium(start_profile_response)
+        except Exception as e:
+            get_logger().error(
+                f"[INSTA-AGENT]: Failed to create selenium instance for profile {profile.username}: {str(e)}"
+            )
+            app_status_info.set_status(
+                profile.ads_power_id, BotStatus.SeleniumFailed
+            )
+            return
 
         get_logger().info(
             f"[INSTA-AGENT]: Profile {profile.username} starting for {len(usernames)} total usernames"
         )
+        
+        app_status_info.set_total(profile.ads_power_id, len(usernames))
+        app_status_info.set_status(profile.ads_power_id, BotStatus.Running)
 
         for username in usernames:
             result = run_follow_action(selenium_instance, username)
@@ -117,8 +129,28 @@ def run_single(profile: ProfileDataRow):
                 )
                 get_logger().error("User Done!")
                 break
+                
+        # Mark as done if we processed all usernames without errors
+        current_profile = app_status_info.get_profile(profile.ads_power_id)
+        if current_profile and current_profile.bot_status == BotStatus.Running.value:
+            app_status_info.set_status(profile.ads_power_id, BotStatus.Done)
+            get_logger().info(f"[INSTA-AGENT]: Profile {profile.username} completed successfully")
+            
     except Exception as e:
-        get_logger().error(f"Run single failed, {str(e)}")
+        get_logger().error(f"[INSTA-AGENT]: Run single failed for profile {profile.username}: {str(e)}")
+        app_status_info.set_status(profile.ads_power_id, BotStatus.Failed)
+    finally:
+        # Always try to close selenium and stop profile
+        try:
+            if 'selenium_instance' in locals():
+                selenium_instance.quit()
+        except Exception as e:
+            get_logger().error(f"[INSTA-AGENT]: Failed to quit selenium for profile {profile.username}: {str(e)}")
+            
+        try:
+            adspower.stop_profile(profile.ads_power_id)
+        except Exception as e:
+            get_logger().error(f"[INSTA-AGENT]: Failed to stop AdsPower profile {profile.username}: {str(e)}")
 
 
 def do_start_all():
@@ -127,13 +159,13 @@ def do_start_all():
         app_status_info.schedule(profile.ads_power_id)
 
     for profile in profiles:
-        # executor.submit(run_single, profile)
-        run_single(profile)
+        executor.submit(run_single, profile)
+        #run_single(profile)
 
 
 def agent_start_all():
-    # executor.submit(do_start_all)
-    do_start_all()
+    executor.submit(do_start_all)
+    #do_start_all()
 
 
 def agent_start_selected(ids: list):
