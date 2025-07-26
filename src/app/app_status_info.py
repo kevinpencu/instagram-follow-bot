@@ -4,22 +4,24 @@ import threading
 
 
 class BotStatus(Enum):
-    PENDING = "scheduled"
-    RUNNING = "running"
-    FAILED = "failed"
-    DONE = "done"
+    Pending = "scheduled"
+    Running = "running"
+    Failed = "failed"
+    AdsPowerStartFailed = "failed"
+    FollowBlocked = "followblocked"
+    NoTargets = "notargets"
+    Done = "done"
 
 
 @dataclass
 class ActiveProfileStats:
     ads_power_id: str
     username: str
-    bot_status: BotStatus
+    bot_status: str
     total_accounts: int
     total_followed: int
     total_follow_failed: int
     total_already_followed: int
-    total_private_accounts: int
 
 
 @dataclass
@@ -45,8 +47,19 @@ class AppStatusInfo:
     ) -> ActiveProfileStats:
         with self._lock:
             self._data.active_profiles[ads_power_id] = ActiveProfileStats(
-                ads_power_id, username, status, 0
+                ads_power_id, username, status.value, 0, 0, 0, 0
             )
+
+    def set_status(self, ads_power_id: str, status: BotStatus):
+        with self._lock:
+            self._data.active_profiles[ads_power_id].bot_status = status.value
+
+    def set_total(self, ads_power_id: str, total: int):
+        with self._lock:
+            profile = self.get_profile(ads_power_id)
+            if profile is None:
+                return
+            profile.total_accounts = total
 
     def increment_total_followed(self, ads_power_id: str):
         with self._lock:
@@ -54,6 +67,22 @@ class AppStatusInfo:
             if profile is None:
                 return
             profile.total_followed = profile.total_followed + 1
+
+    def increment_total_follow_failed(self, ads_power_id: str):
+        with self._lock:
+            profile = self.get_profile(ads_power_id)
+            if profile is None:
+                return
+            profile.total_follow_failed = profile.total_follow_failed + 1
+
+    def increment_already_followed(self, ads_power_id: str):
+        with self._lock:
+            profile = self.get_profile(ads_power_id)
+            if profile is None:
+                return
+            profile.total_already_followed = (
+                profile.total_already_followed + 1
+            )
 
     def schedule(self, ads_power_id: str):
         self._data.scheduled_ads_power_ids.append(ads_power_id)
@@ -64,7 +93,10 @@ class AppStatusInfo:
 
     def get_all(self):
         with self._lock:
-            return dict(self._data)
+            return {
+                "activeProfiles": self._data.active_profiles,
+                "scheduled": self._data.scheduled_ads_power_ids,
+            }
 
 
 app_status_info = AppStatusInfo()
