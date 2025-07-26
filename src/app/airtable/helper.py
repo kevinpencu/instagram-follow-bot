@@ -24,7 +24,8 @@ def get_table():
 
 def get_profiles():
     return get_table().all(
-        fields=["Targets", "AdsPower ID", "Username"], max_records=1
+        fields=["Targets", "AdsPower ID", "Username"],
+        view=config["viewId"],
     )
 
 
