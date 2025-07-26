@@ -8,8 +8,10 @@ from app.app_status_info import app_status_info
 from app.executor import executor, get_executor
 from app.insta_agent import agent_start_all, agent_start_selected
 from app.logger import get_logger
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route("/profiles")
