@@ -9,9 +9,11 @@ from app.executor import executor, get_executor
 from app.insta_agent import agent_start_all, agent_start_selected
 from app.logger import get_logger
 from flask_cors import CORS
+from app.errors import init_handler
 
 app = Flask(__name__)
 CORS(app)
+init_handler(app)
 
 
 @app.route("/profiles")
@@ -33,7 +35,7 @@ def start():
     try:
         body = request.get_json() or {}
         max_workers = body.get("maxWorkers", 4)
-        
+
         if not isinstance(max_workers, int) or max_workers <= 0:
             return (
                 jsonify(
@@ -42,7 +44,7 @@ def start():
                 ),
                 400,
             )
-        
+
         agent_start_all(max_workers)
         return {}
     except Exception as e:
@@ -83,7 +85,7 @@ def start_selected():
             )
 
         max_workers = body.get("maxWorkers", 4)
-        
+
         if not isinstance(max_workers, int) or max_workers <= 0:
             return (
                 jsonify(
@@ -92,7 +94,7 @@ def start_selected():
                 ),
                 400,
             )
-        
+
         agent_start_selected(ads_power_profile_ids, max_workers)
         return {}
     except Exception as e:
