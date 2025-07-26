@@ -27,5 +27,7 @@ def run_selenium(
 
         return driver
     except Exception as e:
-        get_logger().error(f"[ADSPOWER-SELENIUM]: Failed to create WebDriver: {str(e)}")
+        get_logger().error(
+            f"[ADSPOWER-SELENIUM]: Failed to create WebDriver: {str(e)}"
+        )
         raise

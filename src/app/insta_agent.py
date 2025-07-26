@@ -84,9 +84,11 @@ def run_single(profile: ProfileDataRow):
         get_logger().info(
             f"[INSTA-AGENT]: Profile {profile.username} starting for {len(usernames)} total usernames"
         )
-        
+
         app_status_info.set_total(profile.ads_power_id, len(usernames))
-        app_status_info.set_status(profile.ads_power_id, BotStatus.Running)
+        app_status_info.set_status(
+            profile.ads_power_id, BotStatus.Running
+        )
 
         for username in usernames:
             result = run_follow_action(selenium_instance, username)
@@ -124,25 +126,47 @@ def run_single(profile: ProfileDataRow):
                     profile.ads_power_id, BotStatus.FollowBlocked
                 )
                 break
-                
-        current_profile = app_status_info.get_profile(profile.ads_power_id)
-        if current_profile and current_profile.bot_status == BotStatus.Running.value:
-            app_status_info.set_status(profile.ads_power_id, BotStatus.Done)
-            get_logger().info(f"[INSTA-AGENT]: Profile {profile.username} completed successfully")
-            
+
+            if result == OperationState.AccountLoggedOut:
+                get_logger().info("AccountLoggedOut!")
+                app_status_info.set_status(
+                    profile.ads_power_id, BotStatus.AccountLoggedOut
+                )
+                break
+
+        current_profile = app_status_info.get_profile(
+            profile.ads_power_id
+        )
+        if (
+            current_profile
+            and current_profile.bot_status == BotStatus.Running.value
+        ):
+            app_status_info.set_status(
+                profile.ads_power_id, BotStatus.Done
+            )
+            get_logger().info(
+                f"[INSTA-AGENT]: Profile {profile.username} completed successfully"
+            )
+
     except Exception as e:
-        get_logger().error(f"[INSTA-AGENT]: Run single failed for profile {profile.username}: {str(e)}")
+        get_logger().error(
+            f"[INSTA-AGENT]: Run single failed for profile {profile.username}: {str(e)}"
+        )
         app_status_info.set_status(profile.ads_power_id, BotStatus.Failed)
     finally:
         try:
             selenium_instance.quit()
         except Exception as e:
-            get_logger().error(f"[INSTA-AGENT]: Failed to quit selenium for profile {profile.username}: {str(e)}")
-            
+            get_logger().error(
+                f"[INSTA-AGENT]: Failed to quit selenium for profile {profile.username}: {str(e)}"
+            )
+
         try:
             adspower.stop_profile(profile.ads_power_id)
         except Exception as e:
-            get_logger().error(f"[INSTA-AGENT]: Failed to stop AdsPower profile {profile.username}: {str(e)}")
+            get_logger().error(
+                f"[INSTA-AGENT]: Failed to stop AdsPower profile {profile.username}: {str(e)}"
+            )
 
 
 def do_start_profiles(profiles):
@@ -164,15 +188,20 @@ def do_start_selected(ads_power_ids):
     """Start automation for selected profiles by AdsPower IDs"""
     all_profiles = get_profiles_mapped()
     selected_profiles = [
-        profile for profile in all_profiles 
+        profile
+        for profile in all_profiles
         if profile.ads_power_id in ads_power_ids
     ]
-    
+
     if len(selected_profiles) == 0:
-        get_logger().warning(f"[INSTA-AGENT]: No profiles found for provided AdsPower IDs: {ads_power_ids}")
+        get_logger().warning(
+            f"[INSTA-AGENT]: No profiles found for provided AdsPower IDs: {ads_power_ids}"
+        )
         return
-        
-    get_logger().info(f"[INSTA-AGENT]: Starting automation for {len(selected_profiles)} selected profiles")
+
+    get_logger().info(
+        f"[INSTA-AGENT]: Starting automation for {len(selected_profiles)} selected profiles"
+    )
     do_start_profiles(selected_profiles)
 
 

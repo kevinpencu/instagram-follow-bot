@@ -17,6 +17,7 @@ class OperationState(Enum):
     FailedToFollow = 2
     AccountIsSuspended = 3
     FollowBlocked = 4
+    AccountLoggedOut = 5
 
 
 def go_to_user(driver: webdriver.Chrome, username: str):
@@ -55,9 +56,27 @@ def follow_current_user(driver: webdriver.Chrome, username: str):
     return True
 
 
+def is_logged_out(driver: webdriver.Chrome):
+    elems = driver.find_elements(
+        By.XPATH,
+        "//div[text()='Log in'] | //div[text()='Sign up for Instagram']",
+    )
+    return len(elems) <= 0
+
+
 def run_follow_action(driver: webdriver.Chrome, username: str):
     get_logger().info(f"[INSTA-SELENIUM]: Navigating to user {username}")
     go_to_user(driver, username)
+
+    get_logger().info(
+        f"[INSTA-SELENIUM]: Checking if account is logged out..."
+    )
+
+    if is_logged_out(driver):
+        get_logger().error(
+            f"[INSTA-SELENIUM]: Account is logged out. Abandoning..."
+        )
+        return OperationState.AccountLoggedOut
 
     get_logger().info(
         f"[INSTA-SELENIUM]: Checking if account is suspended..."

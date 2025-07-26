@@ -9,6 +9,7 @@ class BotStatus(Enum):
     Failed = "failed"
     SeleniumFailed = "seleniumFailed"
     AdsPowerStartFailed = "adsPowerFailed"
+    AccountLoggedOut = "accountLoggedOut"
     FollowBlocked = "followblocked"
     NoTargets = "notargets"
     Done = "done"
@@ -42,8 +43,10 @@ class AppStatusInfo:
             if stat is None:
                 return None
             return stat
-    
-    def _get_profile_unlocked(self, ads_power_id: str) -> ActiveProfileStats:
+
+    def _get_profile_unlocked(
+        self, ads_power_id: str
+    ) -> ActiveProfileStats:
         """Internal method to get profile without acquiring lock - caller must hold lock"""
         stat = self._data.active_profiles.get(ads_power_id)
         if stat is None:
@@ -60,7 +63,9 @@ class AppStatusInfo:
 
     def set_status(self, ads_power_id: str, status: BotStatus):
         with self._lock:
-            self._data.active_profiles[ads_power_id].bot_status = status.value
+            self._data.active_profiles[ads_power_id].bot_status = (
+                status.value
+            )
 
     def set_total(self, ads_power_id: str, total: int):
         with self._lock:
