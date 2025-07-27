@@ -40,11 +40,6 @@ export function WorkerInputModal({
       return;
     }
     
-    if (workersNum > 20) {
-      setError("Maximum 20 workers allowed");
-      return;
-    }
-
     setError("");
     await onConfirm(workersNum);
   };
