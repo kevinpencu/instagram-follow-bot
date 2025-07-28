@@ -179,6 +179,7 @@ def do_start_profiles(profiles, max_workers=4):
     profile_executor = get_executor(max_workers)
     for profile in profiles:
         profile_executor.submit(run_single, profile)
+        time.sleep(1)  # Add 1 second delay between profile submissions
 
 
 def do_start_all(max_workers=4):
