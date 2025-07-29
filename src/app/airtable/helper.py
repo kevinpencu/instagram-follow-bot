@@ -67,7 +67,6 @@ def get_processed_targets_download_urls(row: dict):
 
 
 def get_existing_processed_targets_filename(record: dict) -> str:
-    """Get the filename of existing ProcessedTargetsTextFile attachment, if any"""
     fields = record.get("fields")
     processed_files = fields.get("ProcessedTargetsTextFile")
 
@@ -176,10 +175,6 @@ def update_processed_targets(
             f"[AIRTABLE]: Updating processed targets for {row.username} ({len(usernames)} usernames) using filename: {filename}"
         )
 
-        # Delete existing attachment
-        table.update(row.airtable_id, {"ProcessedTargetsTextFile": []})
-        
-        # Upload new attachment
         result = table.upload_attachment(
             record_id=row.airtable_id,
             field="ProcessedTargetsTextFile",
@@ -187,6 +182,12 @@ def update_processed_targets(
             content=content,
             content_type="text/plain",
         )
+        
+        updated_record = table.get(row.airtable_id)
+        processed_files = updated_record.get("fields", {}).get("ProcessedTargetsTextFile", [])
+        
+        if len(processed_files) > 1:
+            table.update(row.airtable_id, {"ProcessedTargetsTextFile": [processed_files[-1]]})
 
         get_logger().info(
             f"[AIRTABLE]: Successfully updated processed targets for {row.username}"
