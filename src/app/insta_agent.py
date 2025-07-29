@@ -3,7 +3,7 @@ from app.airtable.helper import (
     get_profiles_mapped,
     fetch_and_parse_usernames,
     ProfileDataRow,
-    refresh_profile
+    refresh_profile,
 )
 from flask import Flask, request, jsonify
 from app.adspower.api_wrapper import adspower

@@ -26,7 +26,7 @@ def get_table():
 def get_profiles():
     table = get_table()
     all_records = []
-    
+
     for batch in table.iterate(
         fields=["Targets", "AdsPower ID", "Username"],
         view=config["viewId"],
@@ -52,11 +52,11 @@ def get_targets_download_urls(row: dict):
 
 def refresh_profile(row: ProfileDataRow) -> ProfileDataRow:
     table = get_table()
-    
+
     try:
         record = table.get(row.airtable_id)
         get_logger().info(f"[AIRTABLE]: Refreshed profile {row.username}")
-        
+
         return ProfileDataRow(
             record["id"],
             record["fields"]["AdsPower ID"],
@@ -64,7 +64,9 @@ def refresh_profile(row: ProfileDataRow) -> ProfileDataRow:
             get_targets_download_urls(record),
         )
     except Exception as e:
-        get_logger().error(f"[AIRTABLE]: Failed to refresh profile {row.username}: {e}")
+        get_logger().error(
+            f"[AIRTABLE]: Failed to refresh profile {row.username}: {e}"
+        )
 
     return row
 

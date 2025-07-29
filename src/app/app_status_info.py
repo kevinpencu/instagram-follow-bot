@@ -10,7 +10,7 @@ class BotStatus(Enum):
     SeleniumFailed = "seleniumFailed"
     AdsPowerStartFailed = "adsPowerFailed"
     AccountLoggedOut = "accountLoggedOut"
-    AccountIsSuspended = 'accountSuspended'
+    AccountIsSuspended = "accountSuspended"
     FollowBlocked = "followblocked"
     NoTargets = "notargets"
     Done = "done"
