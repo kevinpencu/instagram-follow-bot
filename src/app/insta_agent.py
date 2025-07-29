@@ -4,6 +4,8 @@ from app.airtable.helper import (
     fetch_and_parse_usernames,
     ProfileDataRow,
     refresh_profile,
+    fetch_and_parse_processed_targets,
+    update_processed_targets
 )
 from flask import Flask, request, jsonify
 from app.adspower.api_wrapper import adspower
@@ -92,20 +94,28 @@ def run_single(profile: ProfileDataRow):
             profile.ads_power_id, BotStatus.Running
         )
 
+        processed_usernames = fetch_and_parse_processed_targets(profile)
         for username in usernames:
+            if username in processed_usernames:
+                continue
+
             result = run_follow_action(selenium_instance, username)
             if result == OperationState.AlreadyFollowed:
-                get_logger().info("AlreadyFollowed!")
+                get_logger().info("AlreadyFollowed! Updating processed targets...")
                 app_status_info.increment_already_followed(
                     profile.ads_power_id
                 )
+                processed_usernames.append(username)
+                update_processed_targets(profile, processed_usernames)
                 continue
 
             if result == OperationState.FollowedOrRequested:
-                get_logger().info("FollowedOrRequested!")
+                get_logger().info("FollowedOrRequested! Updating processed targets...")
                 app_status_info.increment_total_followed(
                     profile.ads_power_id
                 )
+                processed_usernames.append(username)
+                update_processed_targets(profile, processed_usernames)
                 continue
 
             if result == OperationState.FailedToFollow:
