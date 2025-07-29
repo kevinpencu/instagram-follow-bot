@@ -3,6 +3,7 @@ from app.airtable.helper import (
     get_profiles_mapped,
     fetch_and_parse_usernames,
     ProfileDataRow,
+    refresh_profile
 )
 from flask import Flask, request, jsonify
 from app.adspower.api_wrapper import adspower
@@ -18,6 +19,7 @@ from app.automation.instagram_selenium import (
 
 
 def run_single(profile: ProfileDataRow):
+    profile = refresh_profile(profile)
     try:
         get_logger().info(
             f"[INSTA-AGENT]: Initiating Profile {profile.username}"

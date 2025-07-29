@@ -2,3 +2,4 @@
 __pycache__
 *.log
 api_config.py
+assigned_followers/
