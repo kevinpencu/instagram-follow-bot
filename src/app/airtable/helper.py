@@ -9,6 +9,7 @@ config = get_cfg()["airtable"]
 
 @dataclass
 class ProfileDataRow:
+    airtable_id: str
     ads_power_id: str
     username: str
     target_download_urls: list[str]
@@ -29,11 +30,13 @@ def get_profiles():
     for batch in table.iterate(
         fields=["Targets", "AdsPower ID", "Username"],
         view=config["viewId"],
-        page_size=100
+        page_size=100,
     ):
         all_records.extend(batch)
 
-    get_logger().info(f"[AIRTABLE]: Fetched {len(all_records)} profile records")
+    get_logger().info(
+        f"[AIRTABLE]: Fetched {len(all_records)} profile records"
+    )
     return all_records
 
 
@@ -47,9 +50,15 @@ def get_targets_download_urls(row: dict):
     )
 
 
+def refresh_profile(row: ProfileDataRow) -> ProfileDataRow:
+    # Refetch the specific row from airtable using the airtable_id to re-generate the download links
+    pass
+
+
 def get_profiles_mapped() -> list[ProfileDataRow]:
     return [
         ProfileDataRow(
+            x["id"],
             x["fields"]["AdsPower ID"],
             x["fields"]["Username"],
             get_targets_download_urls(x),
