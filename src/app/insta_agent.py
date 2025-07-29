@@ -97,6 +97,7 @@ def run_single(profile: ProfileDataRow):
         processed_usernames = fetch_and_parse_processed_targets(profile)
         for username in usernames:
             if username in processed_usernames:
+                get_logger().info("Skipping already processed username!")
                 continue
 
             result = run_follow_action(selenium_instance, username)
