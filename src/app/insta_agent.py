@@ -98,6 +98,9 @@ def run_single(profile: ProfileDataRow):
         for username in usernames:
             if username in processed_usernames:
                 get_logger().info("Skipping already processed username!")
+                app_status_info.increment_already_followed(
+                    profile.ads_power_id
+                )
                 continue
 
             result = run_follow_action(selenium_instance, username)
