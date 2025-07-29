@@ -43,8 +43,6 @@ def run_single(profile: ProfileDataRow):
             )
             return
 
-        # usernames = usernames[:4]
-
         get_logger().info(
             f"[INSTA-AGENT]: Fetched {len(usernames)} targets for profile {profile.username}..."
         )
@@ -179,7 +177,7 @@ def do_start_profiles(profiles, max_workers=4):
     profile_executor = get_executor(max_workers)
     for profile in profiles:
         profile_executor.submit(run_single, profile)
-        time.sleep(1)  # Add 1 second delay between profile submissions
+        time.sleep(1)
 
 
 def do_start_all(max_workers=4):
