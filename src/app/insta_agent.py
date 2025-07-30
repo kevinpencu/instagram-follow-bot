@@ -112,7 +112,6 @@ def run_single(profile: ProfileDataRow):
                     profile.ads_power_id
                 )
                 processed_usernames.append(username)
-                update_processed_targets(profile, processed_usernames)
                 continue
 
             if result == OperationState.FollowedOrRequested:
@@ -123,7 +122,6 @@ def run_single(profile: ProfileDataRow):
                     profile.ads_power_id
                 )
                 processed_usernames.append(username)
-                update_processed_targets(profile, processed_usernames)
                 continue
 
             if result == OperationState.PageUnavailable:
@@ -132,7 +130,6 @@ def run_single(profile: ProfileDataRow):
                     profile.ads_power_id
                 )
                 processed_usernames.append(username)
-                update_processed_targets(profile, processed_usernames)
                 continue
 
 
@@ -164,6 +161,7 @@ def run_single(profile: ProfileDataRow):
                 )
                 break
 
+        update_processed_targets(profile, processed_usernames)
         current_profile = app_status_info.get_profile(
             profile.ads_power_id
         )
