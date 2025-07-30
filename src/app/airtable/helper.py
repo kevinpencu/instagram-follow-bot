@@ -33,7 +33,7 @@ def get_profiles():
             "Targets",
             "AdsPower ID",
             "Username",
-            "ProcessedTargetsTextFile",
+            "Already Followed",
         ],
         view=config["viewId"],
         page_size=100,
@@ -59,16 +59,16 @@ def get_targets_download_urls(row: dict):
 def get_processed_targets_download_urls(row: dict):
     fields = row.get("fields")
     return (
-        [x["url"] for x in fields.get("ProcessedTargetsTextFile")]
-        if fields.get("ProcessedTargetsTextFile") is not None
-        and len(fields.get("ProcessedTargetsTextFile")) > 0
+        [x["url"] for x in fields.get("Already Followed")]
+        if fields.get("Already Followed") is not None
+        and len(fields.get("Already Followed")) > 0
         else []
     )
 
 
 def get_existing_processed_targets_filename(record: dict) -> str:
     fields = record.get("fields")
-    processed_files = fields.get("ProcessedTargetsTextFile")
+    processed_files = fields.get("Already Followed")
 
     if processed_files and len(processed_files) > 0:
         return processed_files[0].get(
@@ -177,17 +177,17 @@ def update_processed_targets(
 
         result = table.upload_attachment(
             record_id=row.airtable_id,
-            field="ProcessedTargetsTextFile",
+            field="Already Followed",
             filename=filename,
             content=content,
             content_type="text/plain",
         )
         
         updated_record = table.get(row.airtable_id)
-        processed_files = updated_record.get("fields", {}).get("ProcessedTargetsTextFile", [])
+        processed_files = updated_record.get("fields", {}).get("Already Followed", [])
         
         if len(processed_files) > 1:
-            table.update(row.airtable_id, {"ProcessedTargetsTextFile": [processed_files[-1]]})
+            table.update(row.airtable_id, {"Already Followed": [processed_files[-1]]})
 
         get_logger().info(
             f"[AIRTABLE]: Successfully updated processed targets for {row.username}"
