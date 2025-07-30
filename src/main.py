@@ -9,6 +9,7 @@ from app.executor import executor, get_executor
 from app.insta_agent import agent_start_all, agent_start_selected
 from app.logger import get_logger
 from flask_cors import CORS
+import code
 from app.errors import init_handler
 
 app = Flask(__name__)
@@ -128,6 +129,32 @@ def status():
             500,
         )
 
+
+def start_debug_shell():
+    import time
+    from app.airtable.helper import (
+        get_profiles_mapped,
+        fetch_and_parse_usernames,
+        ProfileDataRow,
+        refresh_profile,
+        fetch_and_parse_processed_targets,
+        update_processed_targets,
+    )
+    from flask import Flask, request, jsonify
+    from app.adspower.api_wrapper import adspower
+    from concurrent.futures import ThreadPoolExecutor
+    from app.app_status_info import app_status_info, BotStatus
+    from app.executor import executor, get_executor
+    from app.logger import get_logger
+    from app.adspower_selenium import run_selenium
+    from app.automation.instagram_selenium import (
+        run_follow_action,
+        OperationState,
+    )
+
+    variables = globals().copy()
+    variables.update(locals())
+    code.interact(local=variables)
 
 if __name__ == "__main__":
     app.run(port=5001)

@@ -5,7 +5,7 @@ from app.airtable.helper import (
     ProfileDataRow,
     refresh_profile,
     fetch_and_parse_processed_targets,
-    update_processed_targets
+    update_processed_targets,
 )
 from flask import Flask, request, jsonify
 from app.adspower.api_wrapper import adspower
@@ -105,7 +105,9 @@ def run_single(profile: ProfileDataRow):
 
             result = run_follow_action(selenium_instance, username)
             if result == OperationState.AlreadyFollowed:
-                get_logger().info("AlreadyFollowed! Updating processed targets...")
+                get_logger().info(
+                    "AlreadyFollowed! Updating processed targets..."
+                )
                 app_status_info.increment_already_followed(
                     profile.ads_power_id
                 )
@@ -114,13 +116,25 @@ def run_single(profile: ProfileDataRow):
                 continue
 
             if result == OperationState.FollowedOrRequested:
-                get_logger().info("FollowedOrRequested! Updating processed targets...")
+                get_logger().info(
+                    "FollowedOrRequested! Updating processed targets..."
+                )
                 app_status_info.increment_total_followed(
                     profile.ads_power_id
                 )
                 processed_usernames.append(username)
                 update_processed_targets(profile, processed_usernames)
                 continue
+
+            if result == OperationState.PageUnavailable:
+                get_logger().info("AccountLoggedOut!")
+                app_status_info.increment_total_follow_failed(
+                    profile.ads_power_id
+                )
+                processed_usernames.append(username)
+                update_processed_targets(profile, processed_usernames)
+                continue
+
 
             if result == OperationState.FailedToFollow:
                 get_logger().info("FailedToFollow!")

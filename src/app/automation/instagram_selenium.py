@@ -18,6 +18,7 @@ class OperationState(Enum):
     AccountIsSuspended = 3
     FollowBlocked = 4
     AccountLoggedOut = 5
+    PageUnavailable = 6
 
 
 def go_to_user(driver: webdriver.Chrome, username: str):
@@ -53,6 +54,16 @@ def follow_current_user(driver: webdriver.Chrome, username: str):
     )
     elems[0].click()
     time.sleep(3)
+
+    return True
+
+
+def is_page_unavailable(driver: webdriver.Chrome):
+    elems = driver.find_elements(
+        By.XPATH, '//span[text()="Sorry, this page isn\'t available."]'
+    )
+    if not elems:
+        return False
 
     return True
 
@@ -97,6 +108,12 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
             f"[INSTA-SELENIUM]: Page is already followed or requested. Abandoning..."
         )
         return OperationState.AlreadyFollowed
+
+    if is_page_unavailable(driver):
+        get_logger().info(
+            f"[INSTA-SELENIUM]: Page is unavailable. Abandoning..."
+        )
+        return OperationState.PageUnavailable
 
     get_logger().info(f"[INSTA-SELENIUM]: Following user...")
 
