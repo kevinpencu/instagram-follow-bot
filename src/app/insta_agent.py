@@ -6,6 +6,8 @@ from app.airtable.helper import (
     refresh_profile,
     fetch_and_parse_processed_targets,
     update_processed_targets,
+    update_status,
+    update_follow_limit_reached,
 )
 from flask import Flask, request, jsonify
 from app.adspower.api_wrapper import adspower
@@ -152,6 +154,8 @@ def run_single(profile: ProfileDataRow):
                 app_status_info.set_status(
                     profile.ads_power_id, BotStatus.FollowBlocked
                 )
+                # Update Airtable with the follow limit reached timestamp
+                update_follow_limit_reached(profile)
                 break
 
             if result == OperationState.AccountLoggedOut:
@@ -159,6 +163,8 @@ def run_single(profile: ProfileDataRow):
                 app_status_info.set_status(
                     profile.ads_power_id, BotStatus.AccountLoggedOut
                 )
+                # Update Airtable status to "Logged Out"
+                update_status(profile, "Logged Out")
                 break
 
         update_processed_targets(profile, processed_usernames)

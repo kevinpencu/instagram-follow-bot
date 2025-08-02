@@ -69,11 +69,19 @@ def is_page_unavailable(driver: webdriver.Chrome):
 
 
 def is_logged_out(driver: webdriver.Chrome):
-    elems = driver.find_elements(
+    # Check for login button with role="button" attribute (more specific)
+    login_button = driver.find_elements(
         By.XPATH,
-        "//div[text()='Log in'] | //div[text()='Sign up for Instagram']",
+        "//div[@role='button' and text()='Log in']",
     )
-    return len(elems) > 0
+    
+    # Also check for other common logout indicators
+    other_logout_indicators = driver.find_elements(
+        By.XPATH,
+        "//div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
+    )
+    
+    return len(login_button) > 0 or len(other_logout_indicators) > 0
 
 
 def run_follow_action(driver: webdriver.Chrome, username: str):
@@ -125,4 +133,19 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
     if is_page_followed_or_requested(driver):
         return OperationState.FollowedOrRequested
 
+    # Check if logged out after failed follow attempt
+    # The login popup often appears after trying to follow
+    get_logger().info(
+        f"[INSTA-SELENIUM]: Follow didn't work, checking if account is logged out..."
+    )
+    if is_logged_out(driver):
+        get_logger().error(
+            f"[INSTA-SELENIUM]: Account is logged out (detected after follow attempt). Abandoning..."
+        )
+        return OperationState.AccountLoggedOut
+
+    # If not logged out and follow didn't work, then it's a follow block
+    get_logger().info(
+        f"[INSTA-SELENIUM]: Follow didn't work and not logged out - marking as follow blocked"
+    )
     return OperationState.FollowBlocked

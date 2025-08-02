@@ -3,6 +3,7 @@ from pyairtable import Api
 from dataclasses import dataclass
 from app.logger import get_logger
 import requests
+from datetime import datetime, timezone
 
 config = get_cfg()["airtable"]
 
@@ -43,6 +44,13 @@ def get_profiles():
     get_logger().info(
         f"[AIRTABLE]: Fetched {len(all_records)} profile records"
     )
+    
+    # Debug: Log the first record to see its structure
+    if all_records:
+        get_logger().debug(
+            f"[AIRTABLE]: First record fields: {list(all_records[0].get('fields', {}).keys())}"
+        )
+    
     return all_records
 
 
@@ -197,5 +205,54 @@ def update_processed_targets(
     except Exception as e:
         get_logger().error(
             f"[AIRTABLE]: Failed to update processed targets for {row.username}: {e}"
+        )
+        return False
+
+
+def update_status(row: ProfileDataRow, status: str) -> bool:
+    """Update the Status field for a profile in Airtable"""
+    table = get_table()
+
+    try:
+        get_logger().info(
+            f"[AIRTABLE]: Updating status for {row.username} to '{status}'"
+        )
+        
+        # Status is a multi-select field, so we need to pass an array
+        result = table.update(row.airtable_id, {"Status": [status]})
+        
+        get_logger().info(
+            f"[AIRTABLE]: Successfully updated status for {row.username} to '{status}'"
+        )
+        return True
+
+    except Exception as e:
+        get_logger().error(
+            f"[AIRTABLE]: Failed to update status for {row.username}: {e}"
+        )
+        return False
+
+
+def update_follow_limit_reached(row: ProfileDataRow) -> bool:
+    """Update the 'Reached Follow Limit' field with current UTC timestamp"""
+    table = get_table()
+
+    try:
+        current_utc = datetime.now(timezone.utc).isoformat()
+        
+        get_logger().info(
+            f"[AIRTABLE]: Updating 'Reached Follow Limit' for {row.username} with timestamp {current_utc}"
+        )
+        
+        result = table.update(row.airtable_id, {"Reached Follow Limit": current_utc})
+        
+        get_logger().info(
+            f"[AIRTABLE]: Successfully updated 'Reached Follow Limit' for {row.username}"
+        )
+        return True
+
+    except Exception as e:
+        get_logger().error(
+            f"[AIRTABLE]: Failed to update 'Reached Follow Limit' for {row.username}: {e}"
         )
         return False
