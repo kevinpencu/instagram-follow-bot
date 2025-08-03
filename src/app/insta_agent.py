@@ -177,6 +177,20 @@ def run_single(profile: ProfileDataRow):
                 update_status(profile, AirtableProfileStatus.LoggedOut)
                 break
 
+            if result == OperationState.SomethingWentWrongCheckpoint:
+                get_logger().info("SomethingWentWrongCheckpoint!")
+                app_status_info.set_status(
+                    profile.ads_power_id,
+                    BotStatus.SomethingWentWrongCheckpoint,
+                )
+
+                # Update Airtable status to "SomethingWentWrongCheckpoint"
+                update_status(
+                    profile,
+                    AirtableProfileStatus.SomethingWentWrongCheckpoint,
+                )
+                break
+
         update_processed_targets(profile, processed_usernames)
         current_profile = app_status_info.get_profile(
             profile.ads_power_id

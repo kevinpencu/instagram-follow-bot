@@ -15,6 +15,7 @@ class BotStatus(Enum):
     NoTargets = "notargets"
     Done = "done"
     Banned = "banned"
+    SomethingWentWrong = "somethingwentwrong"
 
 
 @dataclass

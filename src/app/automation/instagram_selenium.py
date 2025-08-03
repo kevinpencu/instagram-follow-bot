@@ -21,6 +21,7 @@ class OperationState(Enum):
     PageUnavailable = 6
     AccountBanned = 7
     AutomaticBehaviourSuspected = 8
+    SomethingWentWrongCheckpoint = 9
 
 
 def go_to_user(driver: webdriver.Chrome, username: str):
@@ -36,11 +37,15 @@ def is_account_banned(driver: webdriver.Chrome):
 
 
 def is_automatic_behaviour_suspected(driver: webdriver.Chrome):
-    elems = driver.find_elements(
-        By.XPATH,
-        "//*[text()='We suspect automated behavior on your account']",
+    return (
+        len(
+            driver.find_elements(
+                By.XPATH,
+                "//*[text()='We suspect automated behavior on your account']",
+            )
+        )
+        > 0
     )
-    return len(elems) > 0
 
 
 def bypass_automatic_behaviour_suspected(
@@ -59,8 +64,38 @@ def bypass_automatic_behaviour_suspected(
     wait_page_loaded(driver)
     go_to_user(driver, username)
 
-    if is_automatic_behaviour_suspected(driver):
-        return False
+    return is_automatic_behaviour_suspected(driver) == False
+
+
+def is_something_went_wrong_checkpoint(driver: webdriver.Chrome):
+    return (
+        len(
+            driver.find_elements(
+                By.XPATH,
+                "//h3[text()='Something went wrong'] | //div[text()='Reload page']",
+            )
+        )
+        == 2
+    )
+
+
+def bypass_something_went_wrong_checkpoint(
+    driver: webdriver.Chrome, username: str
+):
+    if is_something_went_wrong_checkpoint(driver) == False:
+        return True
+
+    elems = driver.find_elements(By.XPATH, "//div[text()='Reload page']")
+
+    if len(elems) <= 0:
+        return True
+
+    elems[0].click()
+
+    wait_page_loaded(driver)
+    go_to_user(driver, username)
+
+    return is_something_went_wrong_checkpoint(driver) == False
 
 
 def is_page_followed_or_requested(driver: webdriver.Chrome):
@@ -165,6 +200,12 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
             f"[INSTA-SELENIUM]: Automatic behaviour suspected, failed to bypass. Abandoning..."
         )
         return OperationState.AutomaticBehaviourSuspected
+
+    if bypass_something_went_wrong_checkpoint(driver, username) == False:
+        get_logger().info(
+            f"[INSTA-SELENIUM]: Someting went wrong checkpoint, failed to bypass. Abandoning..."
+        )
+        return OperationState.SomethingWentWrongCheckpoint
 
     get_logger().info(f"[INSTA-SELENIUM]: Following user...")
 
