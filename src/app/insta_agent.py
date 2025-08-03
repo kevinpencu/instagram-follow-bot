@@ -44,11 +44,12 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
         time.sleep(attempts_delay_map[attempt_no])
     else:
         get_logger().error(
-            f"[INSTA-AGENT]: Profile {profile.username} start failed after 3 retries, abandoning..."
+            f"[INSTA-AGENT]: Profile {profile.username} 4th retry, abandoning..."
         )
         app_status_info.set_status(
-            profile.ads_power_id, BotStatus.AdsPowerStartFailed
+            profile.ads_power_id, BotStatus.Failed
         )
+        return
 
     try:
         get_logger().info(
@@ -271,6 +272,7 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
             f"[INSTA-AGENT]: Run single failed for profile {profile.username}. Printing exception and shutting down: {str(e)}."
         )
         app_status_info.set_status(profile.ads_power_id, BotStatus.Failed)
+        delay_executor.submit(run_single, profile, attempt_no + 1)
     finally:
         get_logger().error(
             f"[INSTA-AGENT]: Run ended for profile {profile.username}. Updating remote tables and shutting down profile"
