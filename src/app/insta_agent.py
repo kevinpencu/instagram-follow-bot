@@ -252,6 +252,10 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
 
     except Exception as e:
         get_logger().error(
+                f"[INSTA-AGENT]: Run single failed for profile {profile.username}. Updating remote tables and printing exception"
+        )
+        update_processed_targets(profile, processed_usernames)
+        get_logger().error(
             f"[INSTA-AGENT]: Run single failed for profile {profile.username}: {str(e)}"
         )
         app_status_info.set_status(profile.ads_power_id, BotStatus.Failed)
