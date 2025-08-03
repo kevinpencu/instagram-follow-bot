@@ -18,3 +18,10 @@ def close_tabs(driver: webdriver.Chrome):
 def navigate_to(driver: webdriver.Chrome, url: str):
     driver.get(url)
     time.sleep(2.5)
+
+
+def wait_page_loaded(driver: webdriver.Chrome):
+    WebDriverWait(driver, 10).until(
+        lambda d: d.execute_script("return document.readyState")
+        == "complete"
+    )
