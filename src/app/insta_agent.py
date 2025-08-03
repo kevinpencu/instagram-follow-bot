@@ -13,7 +13,7 @@ from flask import Flask, request, jsonify
 from app.adspower.api_wrapper import adspower
 from concurrent.futures import ThreadPoolExecutor
 from app.app_status_info import app_status_info, BotStatus
-from app.executor import executor, get_executor
+from app.executor import executor, get_executor, delay_executor
 from app.logger import get_logger
 from app.adspower_selenium import run_selenium
 from app.automation.instagram_selenium import (
@@ -22,9 +22,22 @@ from app.automation.instagram_selenium import (
 )
 from app.airtable.enum_vals import AirtableProfileStatus
 
+attempts_delay_map = {1: 0, 2: 10, 3: 60, 4: 300}
 
-def run_single(profile: ProfileDataRow):
+
+def run_single(profile: ProfileDataRow, attempt_no: int = 1):
     profile = refresh_profile(profile)
+
+    if attempt_no in attempts_delay_map:
+        time.sleep(attempts_delay_map[attempt_no])
+    else:
+        get_logger().error(
+            f"[INSTA-AGENT]: Profile {profile.username} start failed after 3 retries, abandoning..."
+        )
+        app_status_info.set_status(
+            profile.ads_power_id, BotStatus.AdsPowerStartFailed
+        )
+
     try:
         get_logger().info(
             f"[INSTA-AGENT]: Initiating Profile {profile.username}"
@@ -69,6 +82,7 @@ def run_single(profile: ProfileDataRow):
             app_status_info.set_status(
                 profile.ads_power_id, BotStatus.AdsPowerStartFailed
             )
+            delay_executor.submit(run_single, profile, attempt_no + 1)
             return
 
         time.sleep(3)

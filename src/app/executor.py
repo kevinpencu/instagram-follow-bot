@@ -8,3 +8,4 @@ def get_executor(max_workers=4):
 
 # Default executor for backward compatibility
 executor = get_executor()
+delay_executor = get_executor(6)
