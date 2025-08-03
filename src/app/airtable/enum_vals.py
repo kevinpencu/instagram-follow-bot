@@ -1,3 +1,5 @@
+from enum import Enum
+
 class AirtableProfileStatus(Enum):
     LoggedIn = "Logged In"
     LoggedOut = "Logged Out"
