@@ -6,6 +6,7 @@ import threading
 class BotStatus(Enum):
     Pending = "scheduled"
     Running = "running"
+    Stopping = "stopping"
     Failed = "failed"
     SeleniumFailed = "seleniumFailed"
     AdsPowerStartFailed = "adsPowerFailed"
@@ -117,6 +118,31 @@ class AppStatusInfo:
                 "activeProfiles": self._data.active_profiles,
                 "scheduled": self._data.scheduled_ads_power_ids,
             }
+
+    def run_stop_action(self):
+        with self._lock:
+            for ads_power_id in self._data.active_profiles.keys():
+                self._data.active_profiles[ads_power_id].bot_status = (
+                    BotStatus.Stopping.value
+                )
+
+            for (
+                scheduled_ads_power_id
+            ) in self._data.scheduled_ads_power_ids:
+                if scheduled_ads_power_id in self._data.active_profiles:
+                    pass
+
+                self._data.active_profiles[scheduled_ads_power_id] = (
+                    ActiveProfileStats(
+                        scheduled_ads_power_id,
+                        "Stopped",
+                        BotStatus.Stopping.value,
+                        0,
+                        0,
+                        0,
+                        0,
+                    )
+                )
 
 
 app_status_info = AppStatusInfo()

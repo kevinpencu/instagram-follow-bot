@@ -26,6 +26,7 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isStartingAll, setIsStartingAll] = useState(false);
+  const [isStoppingAll, setIsStoppingAll] = useState(false);
   const [isStartingSelected, setIsStartingSelected] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalAction, setModalAction] = useState<"start-all" | "start-selected">("start-all");
@@ -45,12 +46,12 @@ export default function Index() {
   const fetchStatus = async () => {
     try {
       const statusData = await apiService.getStatus();
-      
+
       setProfiles(currentProfiles => {
         return currentProfiles.map(profile => {
           const status = statusData.activeProfiles[profile.ads_power_id];
           const isScheduled = statusData.scheduled.includes(profile.ads_power_id);
-          
+
           if (status) {
             return { ...profile, status };
           } else if (isScheduled) {
@@ -71,7 +72,7 @@ export default function Index() {
           }
         });
       });
-      
+
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch status');
@@ -83,7 +84,7 @@ export default function Index() {
       await fetchProfiles();
       await fetchStatus();
     };
-    
+
     initializeData();
     const interval = setInterval(fetchStatus, 3000);
     return () => clearInterval(interval);
@@ -117,6 +118,17 @@ export default function Index() {
     setModalOpen(true);
   };
 
+  const handleStopAll = async () => {
+    try {
+      setIsStoppingAll(true);
+      await apiService.stopAll();
+    } catch (err) {
+
+    } finally {
+      setIsStoppingAll(false);
+    }
+  }
+
   const handleConfirmAction = async (maxWorkers: number) => {
     try {
       if (modalAction === "start-all") {
@@ -143,7 +155,7 @@ export default function Index() {
 
   const getStatusBadge = (status?: ProfileStatus) => {
     if (!status) return null;
-    
+
     const statusConfig = {
       scheduled: { variant: 'secondary' as const, label: 'Scheduled', animate: true },
       running: { variant: 'default' as const, label: 'Running', animate: true },
@@ -155,18 +167,19 @@ export default function Index() {
       accountLoggedOut: { variant: 'destructive' as const, label: 'Account Logged Out', animate: false },
       badproxy: { variant: 'destructive' as const, label: 'Bad Proxy', animate: false },
       accountSuspended: { variant: 'destructive' as const, label: 'Account Suspended', animate: false },
+      stopping: { variant: 'default' as const, label: 'Stopping', animate: true },
       somethingwentwrong: { variant: 'destructive' as const, label: 'Something Went Wrong Checkpoint', animate: false },
       accountcompromised: { variant: 'destructive' as const, label: 'Change Password/Compromised Checkpoint', animate: false },
       banned: { variant: 'destructive' as const, label: 'Banned', animate: false },
       notargets: { variant: 'secondary' as const, label: 'No Targets', animate: false },
     };
-    
+
     const config = statusConfig[status.bot_status];
     const animationClass = config.animate ? 'animate-pulse' : '';
-    
+
     return (
-      <Badge 
-        variant={config.variant} 
+      <Badge
+        variant={config.variant}
         className={`${animationClass} transition-all duration-300`}
       >
         {config.label}
@@ -182,24 +195,34 @@ export default function Index() {
           <p className="text-muted-foreground text-sm sm:text-base">Start automated follow operations</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button 
-            onClick={handleStartSelected} 
-            disabled={selectedRows.size === 0 || isStartingSelected || isLoading} 
+          <Button
+            onClick={handleStartSelected}
+            disabled={selectedRows.size === 0 || isStartingSelected || isLoading}
             className="gap-2 w-full sm:w-auto"
           >
             {isStartingSelected ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
             <span className="hidden xs:inline">Start Selected</span>
             <span className="xs:hidden">Selected</span> ({selectedRows.size})
           </Button>
-          <Button 
-            onClick={handleStartAll} 
-            variant="outline" 
+          <Button
+            onClick={handleStartAll}
+            variant="outline"
             disabled={isStartingAll || isLoading}
             className="gap-2 w-full sm:w-auto"
           >
             {isStartingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
             Start All
           </Button>
+          <Button
+            onClick={handleStopAll}
+            variant="outline"
+            disabled={isStoppingAll || isLoading}
+            className="gap-2 w-full sm:w-auto bg-red-500 text-white"
+          >
+            {isStoppingAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+            Stop All
+          </Button>
+
         </div>
       </div>
 

@@ -62,10 +62,17 @@ class ApiService {
     });
   }
 
+  async stopAll(): Promise<{}> {
+    return this.request<{}>('/stop-all', {
+      method: 'POST',
+    });
+  }
+
+
   async startSelected(adsPowerIds: string[], maxWorkers?: number): Promise<{}> {
     return this.request<{}>('/start-selected', {
       method: 'POST',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         adsPowerIds,
         ...(maxWorkers && { maxWorkers })
       }),

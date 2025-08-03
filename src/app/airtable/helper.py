@@ -98,6 +98,7 @@ def get_existing_processed_targets_filename(record: dict) -> str:
 
     return f"processed_targets_{fields.get('Username', 'unknown')}.txt"
 
+
 def get_existing_followsus_targets_filename(record: dict) -> str:
     fields = record.get("fields")
     processed_files = fields.get("Follows Us")
@@ -109,7 +110,6 @@ def get_existing_followsus_targets_filename(record: dict) -> str:
         )
 
     return f"followsus_targets_{fields.get('Username', 'unknown')}.txt"
-
 
 
 def refresh_profile(row: ProfileDataRow) -> ProfileDataRow:
@@ -240,6 +240,7 @@ def update_processed_targets(
         )
         return False
 
+
 def updated_followsus_targets(
     row: ProfileDataRow, usernames: list[str]
 ) -> bool:
@@ -284,7 +285,6 @@ def updated_followsus_targets(
             f"[AIRTABLE]: Failed to update FollowsUs targets for {row.username}: {e}"
         )
         return False
-
 
 
 def update_status(row: ProfileDataRow, status: str) -> bool:

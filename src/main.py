@@ -6,7 +6,11 @@ from flask import Flask, request, jsonify
 from app.adspower.api_wrapper import adspower
 from app.app_status_info import app_status_info
 from app.executor import executor, get_executor
-from app.insta_agent import agent_start_all, agent_start_selected
+from app.insta_agent import (
+    agent_start_all,
+    agent_start_selected,
+    agent_stop,
+)
 from app.logger import get_logger
 from flask_cors import CORS
 import code
@@ -34,6 +38,16 @@ def profiles():
             ),
             500,
         )
+
+
+@app.route("/stop-all", methods=["POST"])
+def stop_all():
+    try:
+        agent_stop()
+        return {}
+    except Exception as e:
+        pass
+    return {}
 
 
 @app.route("/start-all", methods=["POST"])

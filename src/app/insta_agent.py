@@ -25,8 +25,20 @@ from app.airtable.enum_vals import AirtableProfileStatus
 attempts_delay_map = {1: 0, 2: 10, 3: 60, 4: 300}
 
 
+def should_stop_profile(profile: ProfileDataRow) -> bool:
+    current_profile = app_status_info.get_profile(profile.ads_power_id)
+    return (
+        current_profile is not None
+        and current_profile.bot_status == BotStatus.Stopping.value
+    )
+
+
 def run_single(profile: ProfileDataRow, attempt_no: int = 1):
     profile = refresh_profile(profile)
+    if should_stop_profile(profile):
+        get_logger().info(f"Stopping profile {profile.username}")
+        app_status_info.set_status(profile.ads_power_id, BotStatus.Done)
+        return
 
     if attempt_no in attempts_delay_map:
         time.sleep(attempts_delay_map[attempt_no])
@@ -113,6 +125,10 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
 
         processed_usernames = fetch_and_parse_processed_targets(profile)
         for username in usernames:
+            if should_stop_profile(profile):
+                get_logger().info(f"Stopping profile {profile.username}")
+                break
+
             if username in processed_usernames:
                 get_logger().info("Skipping already processed username!")
                 app_status_info.increment_already_followed(
@@ -239,9 +255,9 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
         current_profile = app_status_info.get_profile(
             profile.ads_power_id
         )
-        if (
-            current_profile
-            and current_profile.bot_status == BotStatus.Running.value
+        if current_profile and (
+            current_profile.bot_status == BotStatus.Running.value
+            or current_profile.bot_status == BotStatus.Stopping.value
         ):
             app_status_info.set_status(
                 profile.ads_power_id, BotStatus.Done
@@ -252,14 +268,15 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
 
     except Exception as e:
         get_logger().error(
-                f"[INSTA-AGENT]: Run single failed for profile {profile.username}. Updating remote tables and printing exception"
-        )
-        update_processed_targets(profile, processed_usernames)
-        get_logger().error(
-            f"[INSTA-AGENT]: Run single failed for profile {profile.username}: {str(e)}"
+            f"[INSTA-AGENT]: Run single failed for profile {profile.username}. Printing exception and shutting down: {str(e)}."
         )
         app_status_info.set_status(profile.ads_power_id, BotStatus.Failed)
     finally:
+        get_logger().error(
+            f"[INSTA-AGENT]: Run ended for profile {profile.username}. Updating remote tables and shutting down profile"
+        )
+        update_processed_targets(profile, processed_usernames)
+
         try:
             selenium_instance.quit()
         except Exception as e:
@@ -319,3 +336,7 @@ def agent_start_all(max_workers=4):
 
 def agent_start_selected(ads_power_ids: list, max_workers=4):
     executor.submit(do_start_selected, ads_power_ids, max_workers)
+
+
+def agent_stop():
+    app_status_info.run_stop_action()
