@@ -207,6 +207,20 @@ def run_single(profile: ProfileDataRow):
                 )
                 break
 
+            if result == OperationState.BadProxy:
+                get_logger().info("Bad Proxy 429!")
+                app_status_info.set_status(
+                    profile.ads_power_id,
+                    BotStatus.BadProxy,
+                )
+
+                # Update Airtable status to "BadProxy"
+                update_status(
+                    profile,
+                    AirtableProfileStatus.BadProxy,
+                )
+                break
+
         update_processed_targets(profile, processed_usernames)
         current_profile = app_status_info.get_profile(
             profile.ads_power_id

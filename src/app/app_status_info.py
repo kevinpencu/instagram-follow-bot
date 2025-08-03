@@ -17,6 +17,7 @@ class BotStatus(Enum):
     Banned = "banned"
     SomethingWentWrong = "somethingwentwrong"
     AccountCompromised = "accountcompromised"
+    BadProxy = "badproxy"
 
 
 @dataclass

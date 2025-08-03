@@ -23,6 +23,7 @@ class OperationState(Enum):
     AutomaticBehaviourSuspected = 8
     SomethingWentWrongCheckpoint = 9
     YourAccountWasCompromised = 10
+    BadProxy = 11
 
 
 def go_to_user(driver: webdriver.Chrome, username: str):
@@ -47,6 +48,14 @@ def is_automatic_behaviour_suspected(driver: webdriver.Chrome):
         )
         > 0
     )
+
+
+def is_http_429_chrome(driver: webdriver.Chrome) -> bool:
+    elems = driver.find_elements(
+        By.XPATH,
+        "//span[text()='This page isn’t working'] | //div[text()='HTTP ERROR 429']",
+    )
+    return len(elems) >= 2
 
 
 def bypass_automatic_behaviour_suspected(
@@ -200,6 +209,12 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
             f"[INSTA-SELENIUM]: Account marked as compromised / Change Password. Abandoning..."
         )
         return OperationState.YourAccountWasCompromised
+
+    if is_http_429_chrome(driver):
+        get_logger().error(
+            f"[INSTA-SELENIUM]: Bad Proxy Detected. Abandoning..."
+        )
+        return OperationState.BadProxy
 
     get_logger().info(
         f"[INSTA-SELENIUM]: Checking if page is already followed or requested..."
