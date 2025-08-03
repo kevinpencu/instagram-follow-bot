@@ -19,6 +19,7 @@ class OperationState(Enum):
     FollowBlocked = 4
     AccountLoggedOut = 5
     PageUnavailable = 6
+    AccountBanned = 7
 
 
 def go_to_user(driver: webdriver.Chrome, username: str):
@@ -27,6 +28,10 @@ def go_to_user(driver: webdriver.Chrome, username: str):
 
 def is_account_suspended(driver: webdriver.Chrome):
     return "/accounts/suspended" in driver.current_url
+
+
+def is_account_banned(driver: webdriver.Chrome):
+    return "/accounts/disabled" in driver.current_url
 
 
 def is_page_followed_or_requested(driver: webdriver.Chrome):
@@ -74,7 +79,7 @@ def is_logged_out(driver: webdriver.Chrome):
         By.XPATH,
         "//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
     )
-        
+
     return len(login_buttons) > 0
 
 
@@ -100,6 +105,15 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
             f"[INSTA-SELENIUM]: Account is suspended. Abandoning..."
         )
         return OperationState.AccountIsSuspended
+
+    get_logger().info(
+        f"[INSTA-SELENIUM]: Checking if account is banned..."
+    )
+    if is_account_banned(driver):
+        get_logger().error(
+            f"[INSTA-SELENIUM]: Account is banned. Abandoning..."
+        )
+        return OperationState.AccountBanned
 
     get_logger().info(
         f"[INSTA-SELENIUM]: Checking if page is already followed or requested..."
