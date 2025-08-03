@@ -44,13 +44,13 @@ def get_profiles():
     get_logger().info(
         f"[AIRTABLE]: Fetched {len(all_records)} profile records"
     )
-    
+
     # Debug: Log the first record to see its structure
     if all_records:
         get_logger().debug(
             f"[AIRTABLE]: First record fields: {list(all_records[0].get('fields', {}).keys())}"
         )
-    
+
     return all_records
 
 
@@ -190,12 +190,17 @@ def update_processed_targets(
             content=content,
             content_type="text/plain",
         )
-        
+
         updated_record = table.get(row.airtable_id)
-        processed_files = updated_record.get("fields", {}).get("Already Followed", [])
-        
+        processed_files = updated_record.get("fields", {}).get(
+            "Already Followed", []
+        )
+
         if len(processed_files) > 1:
-            table.update(row.airtable_id, {"Already Followed": [processed_files[-1]]})
+            table.update(
+                row.airtable_id,
+                {"Already Followed": [processed_files[-1]]},
+            )
 
         get_logger().info(
             f"[AIRTABLE]: Successfully updated processed targets for {row.username}"
@@ -217,10 +222,10 @@ def update_status(row: ProfileDataRow, status: str) -> bool:
         get_logger().info(
             f"[AIRTABLE]: Updating status for {row.username} to '{status}'"
         )
-        
+
         # Status is a multi-select field, so we need to pass an array
         result = table.update(row.airtable_id, {"Status": [status]})
-        
+
         get_logger().info(
             f"[AIRTABLE]: Successfully updated status for {row.username} to '{status}'"
         )
@@ -239,13 +244,15 @@ def update_follow_limit_reached(row: ProfileDataRow) -> bool:
 
     try:
         current_utc = datetime.now(timezone.utc).isoformat()
-        
+
         get_logger().info(
             f"[AIRTABLE]: Updating 'Reached Follow Limit' for {row.username} with timestamp {current_utc}"
         )
-        
-        result = table.update(row.airtable_id, {"Reached Follow Limit": current_utc})
-        
+
+        result = table.update(
+            row.airtable_id, {"Reached Follow Limit": current_utc}
+        )
+
         get_logger().info(
             f"[AIRTABLE]: Successfully updated 'Reached Follow Limit' for {row.username}"
         )
