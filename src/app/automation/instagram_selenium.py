@@ -24,6 +24,7 @@ class OperationState(Enum):
     SomethingWentWrongCheckpoint = 9
     YourAccountWasCompromised = 10
     BadProxy = 11
+    SaveLoginInfo = 12
 
 
 def go_to_user(driver: webdriver.Chrome, username: str):
@@ -56,6 +57,33 @@ def is_http_429_chrome(driver: webdriver.Chrome) -> bool:
         "//span[text()='This page isn’t working'] | //div[text()='HTTP ERROR 429']",
     )
     return len(elems) >= 2
+
+
+def is_save_login_info(driver: webdriver.Chrome) -> bool:
+    elems = driver.find_elements(
+        By.XPATH,
+        "//*[text()='Save info']",
+    )
+    return len(elems) > 0
+
+
+def bypass_save_login_info(
+    driver: webdriver.Chrome, username: str
+) -> bool:
+    if is_save_login_info(driver) == False:
+        return True
+
+    elems = driver.find_elements(
+        By.XPATH,
+        "//*[text()='Save info']",
+    )
+
+    elems[0].click()
+    wait_page_loaded(driver)
+
+    go_to_user(driver, username)
+
+    return is_save_login_info(driver) == False
 
 
 def bypass_automatic_behaviour_suspected(
@@ -236,6 +264,12 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
             f"[INSTA-SELENIUM]: Automatic behaviour suspected, failed to bypass. Abandoning..."
         )
         return OperationState.AutomaticBehaviourSuspected
+
+    if bypass_save_login_info(driver, username) == False:
+        get_logger().info(
+            f"[INSTA-SELENIUM]: Save Login Info, failed to bypass. Abandoning..."
+        )
+        return OperationState.SaveLoginInfo
 
     if bypass_something_went_wrong_checkpoint(driver, username) == False:
         get_logger().info(
