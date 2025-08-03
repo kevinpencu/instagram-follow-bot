@@ -187,7 +187,7 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
                 )
 
                 # Update Airtable status to "Banned"
-                update_status(profile, AirtableProfileStatus.Banned)
+                update_status(profile, AirtableProfileStatus.Banned.value)
                 break
 
             if result == OperationState.FollowBlocked:
@@ -205,7 +205,7 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
                     profile.ads_power_id, BotStatus.AccountLoggedOut
                 )
                 # Update Airtable status to "Logged Out"
-                update_status(profile, AirtableProfileStatus.LoggedOut)
+                update_status(profile, AirtableProfileStatus.LoggedOut.value)
                 break
 
             if result == OperationState.SomethingWentWrongCheckpoint:
@@ -218,7 +218,7 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
                 # Update Airtable status to "SomethingWentWrongCheckpoint"
                 update_status(
                     profile,
-                    AirtableProfileStatus.SomethingWentWrongCheckpoint,
+                    AirtableProfileStatus.SomethingWentWrongCheckpoint.value,
                 )
                 break
 
@@ -234,7 +234,7 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
                 # Update Airtable status to "ChangePasswordCheckpoint"
                 update_status(
                     profile,
-                    AirtableProfileStatus.ChangePasswordCheckpoint,
+                    AirtableProfileStatus.ChangePasswordCheckpoint.value,
                 )
                 break
 
@@ -248,7 +248,7 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
                 # Update Airtable status to "BadProxy"
                 update_status(
                     profile,
-                    AirtableProfileStatus.BadProxy,
+                    AirtableProfileStatus.BadProxy.value,
                 )
                 break
 
