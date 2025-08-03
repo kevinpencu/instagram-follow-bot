@@ -15,6 +15,7 @@ class ProfileDataRow:
     username: str
     target_download_urls: list[str]
     processed_targets_download_urls: list[str]
+    followsus_targets_download_urls: list[str]
 
 
 def get_api():
@@ -35,6 +36,7 @@ def get_profiles():
             "AdsPower ID",
             "Username",
             "Already Followed",
+            "Follows Us",
         ],
         view=config["viewId"],
         page_size=100,
@@ -74,6 +76,16 @@ def get_processed_targets_download_urls(row: dict):
     )
 
 
+def get_followsus_targets_download_urls(row: dict):
+    fields = row.get("fields")
+    return (
+        [x["url"] for x in fields.get("Follows Us")]
+        if fields.get("Follows Us") is not None
+        and len(fields.get("Follows Us")) > 0
+        else []
+    )
+
+
 def get_existing_processed_targets_filename(record: dict) -> str:
     fields = record.get("fields")
     processed_files = fields.get("Already Followed")
@@ -85,6 +97,19 @@ def get_existing_processed_targets_filename(record: dict) -> str:
         )
 
     return f"processed_targets_{fields.get('Username', 'unknown')}.txt"
+
+def get_existing_followsus_targets_filename(record: dict) -> str:
+    fields = record.get("fields")
+    processed_files = fields.get("Follows Us")
+
+    if processed_files and len(processed_files) > 0:
+        return processed_files[0].get(
+            "filename",
+            f"followsus_targets_{fields.get('Username', 'unknown')}.txt",
+        )
+
+    return f"followsus_targets_{fields.get('Username', 'unknown')}.txt"
+
 
 
 def refresh_profile(row: ProfileDataRow) -> ProfileDataRow:
@@ -100,6 +125,7 @@ def refresh_profile(row: ProfileDataRow) -> ProfileDataRow:
             record["fields"]["Username"],
             get_targets_download_urls(record),
             get_processed_targets_download_urls(record),
+            get_followsus_targets_download_urls(record),
         )
     except Exception as e:
         get_logger().error(
@@ -117,6 +143,7 @@ def get_profiles_mapped() -> list[ProfileDataRow]:
             x["fields"]["Username"],
             get_targets_download_urls(x),
             get_processed_targets_download_urls(x),
+            get_followsus_targets_download_urls(x),
         )
         for x in get_profiles()
     ]
@@ -212,6 +239,52 @@ def update_processed_targets(
             f"[AIRTABLE]: Failed to update processed targets for {row.username}: {e}"
         )
         return False
+
+def updated_followsus_targets(
+    row: ProfileDataRow, usernames: list[str]
+) -> bool:
+    table = get_table()
+
+    try:
+        record = table.get(row.airtable_id)
+        filename = get_existing_followsus_targets_filename(record)
+
+        content = "\n".join(usernames)
+
+        get_logger().info(
+            f"[AIRTABLE]: Updating FollowsUs Targets for {row.username} ({len(usernames)} usernames) using filename: {filename}"
+        )
+
+        result = table.upload_attachment(
+            record_id=row.airtable_id,
+            field="Follows Us",
+            filename=filename,
+            content=content,
+            content_type="text/plain",
+        )
+
+        updated_record = table.get(row.airtable_id)
+        processed_files = updated_record.get("fields", {}).get(
+            "Follows Us", []
+        )
+
+        if len(processed_files) > 1:
+            table.update(
+                row.airtable_id,
+                {"Follows Us": [processed_files[-1]]},
+            )
+
+        get_logger().info(
+            f"[AIRTABLE]: Successfully updated FollowsUs targets for {row.username}"
+        )
+        return True
+
+    except Exception as e:
+        get_logger().error(
+            f"[AIRTABLE]: Failed to update FollowsUs targets for {row.username}: {e}"
+        )
+        return False
+
 
 
 def update_status(row: ProfileDataRow, status: str) -> bool:
