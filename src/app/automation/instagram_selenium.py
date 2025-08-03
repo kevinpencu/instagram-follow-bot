@@ -69,19 +69,13 @@ def is_page_unavailable(driver: webdriver.Chrome):
 
 
 def is_logged_out(driver: webdriver.Chrome):
-    # Check for login button with role="button" attribute (more specific)
-    login_button = driver.find_elements(
+    # Check for possible elements indicating profile is logged out
+    login_buttons = driver.find_elements(
         By.XPATH,
-        "//div[@role='button' and text()='Log in']",
+        "//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
     )
-    
-    # Also check for other common logout indicators
-    other_logout_indicators = driver.find_elements(
-        By.XPATH,
-        "//div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
-    )
-    
-    return len(login_button) > 0 or len(other_logout_indicators) > 0
+        
+    return len(login_buttons) > 0
 
 
 def run_follow_action(driver: webdriver.Chrome, username: str):
