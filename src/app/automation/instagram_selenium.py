@@ -22,6 +22,7 @@ class OperationState(Enum):
     AccountBanned = 7
     AutomaticBehaviourSuspected = 8
     SomethingWentWrongCheckpoint = 9
+    YourAccountWasCompromised = 10
 
 
 def go_to_user(driver: webdriver.Chrome, username: str):
@@ -96,6 +97,18 @@ def bypass_something_went_wrong_checkpoint(
     go_to_user(driver, username)
 
     return is_something_went_wrong_checkpoint(driver) == False
+
+
+def is_your_account_was_compromised(driver: webdriver.Chrome):
+    return (
+        len(
+            driver.find_elements(
+                By.XPATH,
+                "//h3[text()='Your Account Was Compromised'] | //div[text()='Change Password']",
+            )
+        )
+        == 2
+    )
 
 
 def is_page_followed_or_requested(driver: webdriver.Chrome):
@@ -180,9 +193,17 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
         return OperationState.AccountBanned
 
     get_logger().info(
+        f"[INSTA-SELENIUM]: Checking if account is flagged as compromised / change password..."
+    )
+    if is_your_account_was_compromised(driver):
+        get_logger().error(
+            f"[INSTA-SELENIUM]: Account marked as compromised / Change Password. Abandoning..."
+        )
+        return OperationState.YourAccountWasCompromised
+
+    get_logger().info(
         f"[INSTA-SELENIUM]: Checking if page is already followed or requested..."
     )
-
     if is_page_followed_or_requested(driver):
         get_logger().info(
             f"[INSTA-SELENIUM]: Page is already followed or requested. Abandoning..."

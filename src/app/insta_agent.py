@@ -191,6 +191,22 @@ def run_single(profile: ProfileDataRow):
                 )
                 break
 
+            if result == OperationState.YourAccountWasCompromised:
+                get_logger().info(
+                    "YourAccountWasCompromised/ChangePassword Checkpoint!"
+                )
+                app_status_info.set_status(
+                    profile.ads_power_id,
+                    BotStatus.AccountCompromised,
+                )
+
+                # Update Airtable status to "ChangePasswordCheckpoint"
+                update_status(
+                    profile,
+                    AirtableProfileStatus.ChangePasswordCheckpoint,
+                )
+                break
+
         update_processed_targets(profile, processed_usernames)
         current_profile = app_status_info.get_profile(
             profile.ads_power_id

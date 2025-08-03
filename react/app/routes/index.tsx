@@ -155,6 +155,7 @@ export default function Index() {
       accountLoggedOut: { variant: 'destructive' as const, label: 'Account Logged Out', animate: false },
       accountSuspended: { variant: 'destructive' as const, label: 'Account Suspended', animate: false },
       somethingwentwrong: { variant: 'destructive' as const, label: 'Something Went Wrong Checkpoint', animate: false },
+      accountcompromised: { variant: 'destructive' as const, label: 'Change Password/Compromised Checkpoint', animate: false },
       banned: { variant: 'destructive' as const, label: 'Banned', animate: false },
       notargets: { variant: 'secondary' as const, label: 'No Targets', animate: false },
     };
