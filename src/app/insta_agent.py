@@ -20,6 +20,7 @@ from app.automation.instagram_selenium import (
     run_follow_action,
     OperationState,
 )
+from app.airtable.enum_vals import AirtableProfileStatus
 
 
 def run_single(profile: ProfileDataRow):
@@ -134,7 +135,6 @@ def run_single(profile: ProfileDataRow):
                 processed_usernames.append(username)
                 continue
 
-
             if result == OperationState.FailedToFollow:
                 get_logger().info("FailedToFollow!")
                 app_status_info.increment_total_follow_failed(
@@ -147,6 +147,16 @@ def run_single(profile: ProfileDataRow):
                 app_status_info.set_status(
                     profile.ads_power_id, BotStatus.AccountIsSuspended
                 )
+                break
+
+            if result == OperationState.AccountBanned:
+                get_logger().info("AccountBanned!")
+                app_status_info.set_status(
+                    profile.ads_power_id, BotStatus.Banned
+                )
+
+                # Update Airtable status to "Banned"
+                update_status(profile, AirtableProfileStatus.Banned)
                 break
 
             if result == OperationState.FollowBlocked:
@@ -164,7 +174,7 @@ def run_single(profile: ProfileDataRow):
                     profile.ads_power_id, BotStatus.AccountLoggedOut
                 )
                 # Update Airtable status to "Logged Out"
-                update_status(profile, "Logged Out")
+                update_status(profile, AirtableProfileStatus.LoggedOut)
                 break
 
         update_processed_targets(profile, processed_usernames)
