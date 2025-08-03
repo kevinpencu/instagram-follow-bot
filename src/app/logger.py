@@ -11,10 +11,10 @@ log_formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 
 file_handler = logging.FileHandler(log_file)
 file_handler.setFormatter(log_formatter)
-file_handler.setLevel(logging.DEBUG)
+file_handler.setLevel(logging.INFO)
 
 logging.getLogger().addHandler(file_handler)
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 
 sys.stdout = open(log_file, "a")
 sys.stderr = open(log_file, "a")
