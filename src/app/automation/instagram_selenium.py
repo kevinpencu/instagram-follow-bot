@@ -3,7 +3,7 @@ import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from app.selenium_utils import navigate_to
+from app.selenium_utils import navigate_to, wait_page_loaded
 from app.logger import get_logger
 from selenium.common.exceptions import (
     TimeoutException,
@@ -32,6 +32,27 @@ def is_account_suspended(driver: webdriver.Chrome):
 
 def is_account_banned(driver: webdriver.Chrome):
     return "/accounts/disabled" in driver.current_url
+
+
+def is_automatic_behaviour_suspected(driver: webdriver.Chrome):
+    elems = driver.find_elements(
+        By.XPATH,
+        "//*[text()='We suspect automated behavior on your account']",
+    )
+    return len(elems) > 0
+
+
+def bypass_automatic_behaviour_suspected(driver: webdriver.Chrome):
+    elems = driver.find_element(By.XPATH, "//*[text()='Dismiss']")
+
+    if len(elems) <= 0:
+        return False
+
+    elems[0].click()
+
+    wait_page_loaded(driver)
+
+    return is_automatic_behaviour_suspected(driver) == False
 
 
 def is_page_followed_or_requested(driver: webdriver.Chrome):
