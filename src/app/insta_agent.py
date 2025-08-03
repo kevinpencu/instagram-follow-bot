@@ -212,7 +212,7 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
                 get_logger().info("SomethingWentWrongCheckpoint!")
                 app_status_info.set_status(
                     profile.ads_power_id,
-                    BotStatus.SomethingWentWrongCheckpoint,
+                    BotStatus.SomethingWentWrong,
                 )
 
                 # Update Airtable status to "SomethingWentWrongCheckpoint"
