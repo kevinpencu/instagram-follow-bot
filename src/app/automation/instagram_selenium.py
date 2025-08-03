@@ -20,6 +20,7 @@ class OperationState(Enum):
     AccountLoggedOut = 5
     PageUnavailable = 6
     AccountBanned = 7
+    AutomaticBehaviourSuspected = 8
 
 
 def go_to_user(driver: webdriver.Chrome, username: str):
@@ -42,17 +43,24 @@ def is_automatic_behaviour_suspected(driver: webdriver.Chrome):
     return len(elems) > 0
 
 
-def bypass_automatic_behaviour_suspected(driver: webdriver.Chrome):
+def bypass_automatic_behaviour_suspected(
+    driver: webdriver.Chrome, username: str
+):
+    if is_automatic_behaviour_suspected(driver) == False:
+        return True
+
     elems = driver.find_element(By.XPATH, "//*[text()='Dismiss']")
 
     if len(elems) <= 0:
-        return False
+        return True
 
     elems[0].click()
 
     wait_page_loaded(driver)
+    go_to_user(driver, username)
 
-    return is_automatic_behaviour_suspected(driver) == False
+    if is_automatic_behaviour_suspected(driver):
+        return False
 
 
 def is_page_followed_or_requested(driver: webdriver.Chrome):
@@ -152,6 +160,12 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
         )
         return OperationState.PageUnavailable
 
+    if bypass_automatic_behaviour_suspected(driver, username) == False:
+        get_logger().info(
+            f"[INSTA-SELENIUM]: Automatic behaviour suspected, failed to bypass. Abandoning..."
+        )
+        return OperationState.AutomaticBehaviourSuspected
+
     get_logger().info(f"[INSTA-SELENIUM]: Following user...")
 
     followed = follow_current_user(driver, username)
@@ -162,8 +176,6 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
     if is_page_followed_or_requested(driver):
         return OperationState.FollowedOrRequested
 
-    # Check if logged out after failed follow attempt
-    # The login popup often appears after trying to follow
     get_logger().info(
         f"[INSTA-SELENIUM]: Follow didn't work, checking if account is logged out..."
     )
@@ -173,7 +185,6 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
         )
         return OperationState.AccountLoggedOut
 
-    # If not logged out and follow didn't work, then it's a follow block
     get_logger().info(
         f"[INSTA-SELENIUM]: Follow didn't work and not logged out - marking as follow blocked"
     )
