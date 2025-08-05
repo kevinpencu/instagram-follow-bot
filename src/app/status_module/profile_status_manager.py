@@ -34,7 +34,7 @@ class ProfileStatusManager:
 
     @thread_safe
     def schedule_profile(self, ads_power_id: str):
-        self._profile_stats.unschedule(ads_power_id)
+        self._profile_stats.schedule(ads_power_id)
         pass
 
     @thread_safe

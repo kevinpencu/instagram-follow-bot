@@ -14,6 +14,9 @@ def get_table():
 
 
 def map_attachment_field_to_urls(attachment_field: dict) -> list[str]:
+    if attachment_field is None:
+        return []
+
     return (
         [x["url"] for x in attachment_field]
         if attachment_field is not None and len(attachment_field) > 0

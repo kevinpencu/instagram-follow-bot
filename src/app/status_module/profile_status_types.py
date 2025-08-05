@@ -108,6 +108,6 @@ class ProfileStatusContext:
 
     def get_all(self):
         return {
-            "activeProfiles": self._data.active_profiles,
-            "scheduled": self._data.scheduled_ads_power_ids,
+            "activeProfiles": self.active_profiles,
+            "scheduled": self.scheduled_ads_power_ids,
         }

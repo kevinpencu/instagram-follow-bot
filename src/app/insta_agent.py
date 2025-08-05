@@ -18,10 +18,6 @@ from app.status_module.profile_status_types import BotStatus
 attempts_delay_map = {1: 0, 2: 10, 3: 60, 4: 300}
 
 
-def should_stop_profile(profile: Profile) -> bool:
-    return profile_status_manager.should_stop(profile.ads_power_id)
-
-
 def run_single(profile: Profile, attempt_no: int = 1):
     profile.refresh()
 
@@ -283,7 +279,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
             )
 
 
-def do_start_profiles(profiles, max_workers=4):
+def do_start_profiles(profiles: list[Profile], max_workers=4):
     """Common logic to start automation for a list of profiles"""
     for profile in profiles:
         profile_status_manager.schedule_profile(profile.ads_power_id)
@@ -294,13 +290,13 @@ def do_start_profiles(profiles, max_workers=4):
         time.sleep(1)
 
 
-def do_start_all(max_workers=4):
+def do_start_all(max_workers: int = 4):
     """Start automation for all profiles"""
     profiles = AirTableProfileRepository().get_profiles()
     do_start_profiles(profiles, max_workers)
 
 
-def do_start_selected(ads_power_ids, max_workers=4):
+def do_start_selected(ads_power_ids: list[str], max_workers: int = 4):
     """Start automation for selected profiles by AdsPower IDs"""
     all_profiles = AirTableProfileRepository().get_profiles()
     selected_profiles = [

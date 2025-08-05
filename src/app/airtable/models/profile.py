@@ -34,9 +34,11 @@ class Profile:
                 x["fields"][TARGETS_FIELD_COLUMN]
             ),
             map_attachment_field_to_urls(
-                x["fields"][ALREADY_FOLLOWED_COLUMN]
+                x["fields"].get(ALREADY_FOLLOWED_COLUMN)
             ),
-            map_attachment_field_to_urls(x["fields"][FOLLOWS_US_COLUMN]),
+            map_attachment_field_to_urls(
+                x["fields"].get(FOLLOWS_US_COLUMN)
+            ),
         )
 
     def update_usernames(self, usernames: list[str], field_column: str):

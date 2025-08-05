@@ -1,12 +1,13 @@
-from app.airtable.models.profile import Profile
+from app.airtable.models.profile import (
+    Profile,
+    TARGETS_FIELD_COLUMN,
+    ADSPOWER_ID_COLUMN,
+    USERNAME_COLUMN,
+    ALREADY_FOLLOWED_COLUMN,
+    FOLLOWS_US_COLUMN,
+)
 from app.airtable.helper import get_table, config
 from app.logger import get_logger
-
-TARGETS_FIELD_COLUMN = "Targets"
-ADSPOWER_ID_COLUMN = "AdsPower ID"
-USERNAME_COLUMN = "Username"
-ALREADY_FOLLOWED_COLUMN = "Already Followed"
-FOLLOWS_US_COLUMN = "Follows Us"
 
 ALL_FIELDS = [
     TARGETS_FIELD_COLUMN,
