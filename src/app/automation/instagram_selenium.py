@@ -1,14 +1,9 @@
 from selenium import webdriver
 import time
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from app.selenium_utils import navigate_to, wait_page_loaded
 from app.logger import get_logger
-from app.airtable.models import Profile
-from selenium.common.exceptions import (
-    TimeoutException,
-)
+from app.airtable.models.profile import Profile
 from enum import Enum
 
 
@@ -71,7 +66,7 @@ def is_save_login_info(driver: webdriver.Chrome) -> bool:
 def bypass_save_login_info(
     driver: webdriver.Chrome, username: str
 ) -> bool:
-    if is_save_login_info(driver) == False:
+    if is_save_login_info(driver) is False:
         return True
 
     elems = driver.find_elements(
@@ -84,13 +79,13 @@ def bypass_save_login_info(
 
     go_to_user(driver, username)
 
-    return is_save_login_info(driver) == False
+    return is_save_login_info(driver) is False
 
 
 def bypass_automatic_behaviour_suspected(
     driver: webdriver.Chrome, username: str
 ):
-    if is_automatic_behaviour_suspected(driver) == False:
+    if is_automatic_behaviour_suspected(driver) is False:
         return True
 
     elems = driver.find_element(By.XPATH, "//*[text()='Dismiss']")
@@ -103,7 +98,7 @@ def bypass_automatic_behaviour_suspected(
     wait_page_loaded(driver)
     go_to_user(driver, username)
 
-    return is_automatic_behaviour_suspected(driver) == False
+    return is_automatic_behaviour_suspected(driver) is False
 
 
 def is_something_went_wrong_checkpoint(driver: webdriver.Chrome):
@@ -121,7 +116,7 @@ def is_something_went_wrong_checkpoint(driver: webdriver.Chrome):
 def bypass_something_went_wrong_checkpoint(
     driver: webdriver.Chrome, username: str
 ):
-    if is_something_went_wrong_checkpoint(driver) == False:
+    if is_something_went_wrong_checkpoint(driver) is False:
         return True
 
     elems = driver.find_elements(By.XPATH, "//div[text()='Reload page']")
@@ -134,7 +129,7 @@ def bypass_something_went_wrong_checkpoint(
     wait_page_loaded(driver)
     go_to_user(driver, username)
 
-    return is_something_went_wrong_checkpoint(driver) == False
+    return is_something_went_wrong_checkpoint(driver) is False
 
 
 def is_your_account_was_compromised(driver: webdriver.Chrome):
@@ -212,82 +207,82 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
     go_to_user(driver, username)
 
     get_logger().info(
-        f"[INSTA-SELENIUM]: Checking if account is logged out..."
+        "[INSTA-SELENIUM]: Checking if account is logged out..."
     )
 
     if is_logged_out(driver):
         get_logger().error(
-            f"[INSTA-SELENIUM]: Account is logged out. Abandoning..."
+            "[INSTA-SELENIUM]: Account is logged out. Abandoning..."
         )
         return OperationState.AccountLoggedOut
 
     get_logger().info(
-        f"[INSTA-SELENIUM]: Checking if account is suspended..."
+        "[INSTA-SELENIUM]: Checking if account is suspended..."
     )
     if is_account_suspended(driver):
         get_logger().error(
-            f"[INSTA-SELENIUM]: Account is suspended. Abandoning..."
+            "[INSTA-SELENIUM]: Account is suspended. Abandoning..."
         )
         return OperationState.AccountIsSuspended
 
     get_logger().info(
-        f"[INSTA-SELENIUM]: Checking if account is banned..."
+        "[INSTA-SELENIUM]: Checking if account is banned..."
     )
     if is_account_banned(driver):
         get_logger().error(
-            f"[INSTA-SELENIUM]: Account is banned. Abandoning..."
+            "[INSTA-SELENIUM]: Account is banned. Abandoning..."
         )
         return OperationState.AccountBanned
 
     get_logger().info(
-        f"[INSTA-SELENIUM]: Checking if account is flagged as compromised / change password..."
+        "[INSTA-SELENIUM]: Checking if account is flagged as compromised / change password..."
     )
     if is_your_account_was_compromised(driver):
         get_logger().error(
-            f"[INSTA-SELENIUM]: Account marked as compromised / Change Password. Abandoning..."
+            "[INSTA-SELENIUM]: Account marked as compromised / Change Password. Abandoning..."
         )
         return OperationState.YourAccountWasCompromised
 
     if is_http_429_chrome(driver):
         get_logger().error(
-            f"[INSTA-SELENIUM]: Bad Proxy Detected. Abandoning..."
+            "[INSTA-SELENIUM]: Bad Proxy Detected. Abandoning..."
         )
         return OperationState.BadProxy
 
     get_logger().info(
-        f"[INSTA-SELENIUM]: Checking if page is already followed or requested..."
+        "[INSTA-SELENIUM]: Checking if page is already followed or requested..."
     )
     if is_page_followed_or_requested(driver):
         get_logger().info(
-            f"[INSTA-SELENIUM]: Page is already followed or requested. Abandoning..."
+            "[INSTA-SELENIUM]: Page is already followed or requested. Abandoning..."
         )
         return OperationState.AlreadyFollowed
 
     if is_page_unavailable(driver):
         get_logger().info(
-            f"[INSTA-SELENIUM]: Page is unavailable. Abandoning..."
+            "[INSTA-SELENIUM]: Page is unavailable. Abandoning..."
         )
         return OperationState.PageUnavailable
 
-    if bypass_automatic_behaviour_suspected(driver, username) == False:
+    if bypass_automatic_behaviour_suspected(driver, username) is False:
         get_logger().info(
-            f"[INSTA-SELENIUM]: Automatic behaviour suspected, failed to bypass. Abandoning..."
+            "[INSTA-SELENIUM]: Automatic behaviour suspected, failed to bypass. Abandoning..."
         )
         return OperationState.AutomaticBehaviourSuspected
 
-    if bypass_save_login_info(driver, username) == False:
+    if bypass_save_login_info(driver, username) is False:
         get_logger().info(
-            f"[INSTA-SELENIUM]: Save Login Info, failed to bypass. Abandoning..."
+            "[INSTA-SELENIUM]: Save Login Info, failed to bypass. Abandoning..."
         )
         return OperationState.SaveLoginInfo
 
-    if bypass_something_went_wrong_checkpoint(driver, username) == False:
+    if bypass_something_went_wrong_checkpoint(driver, username) is False:
         get_logger().info(
-            f"[INSTA-SELENIUM]: Someting went wrong checkpoint, failed to bypass. Abandoning..."
+            "[INSTA-SELENIUM]: Someting went wrong checkpoint, failed to bypass. Abandoning..."
         )
         return OperationState.SomethingWentWrongCheckpoint
 
-    get_logger().info(f"[INSTA-SELENIUM]: Following user...")
+    get_logger().info("[INSTA-SELENIUM]: Following user...")
 
     followed = follow_current_user(driver, username)
     if not followed:
@@ -298,15 +293,15 @@ def run_follow_action(driver: webdriver.Chrome, username: str):
         return OperationState.FollowedOrRequested
 
     get_logger().info(
-        f"[INSTA-SELENIUM]: Follow didn't work, checking if account is logged out..."
+        "[INSTA-SELENIUM]: Follow didn't work, checking if account is logged out..."
     )
     if is_logged_out(driver):
         get_logger().error(
-            f"[INSTA-SELENIUM]: Account is logged out (detected after follow attempt). Abandoning..."
+            "[INSTA-SELENIUM]: Account is logged out (detected after follow attempt). Abandoning..."
         )
         return OperationState.AccountLoggedOut
 
     get_logger().info(
-        f"[INSTA-SELENIUM]: Follow didn't work and not logged out - marking as follow blocked"
+        "[INSTA-SELENIUM]: Follow didn't work and not logged out - marking as follow blocked"
     )
     return OperationState.FollowBlocked

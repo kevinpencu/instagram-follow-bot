@@ -2,9 +2,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from app.airtable.helper import (
     get_table,
-    parse_urls_from_attachment_field,
+    map_attachment_field_to_urls,
     download_and_parse_lines_from_url,
 )
+from app.airtable.enums.profile_status import AirtableProfileStatus
 
 DEFAULT_ATTACHMENT_FILE_NAME = "usernames.txt"
 TARGETS_FIELD_COLUMN = "Targets"
@@ -26,41 +27,37 @@ class Profile:
     @staticmethod
     def from_dict(x: dict):
         return Profile(
-            record["id"],
-            record["fields"][ADSPOWER_ID_COLUMN],
-            record["fields"][USERNAME_COLUMN],
-            parse_urls_from_attachment_field(
-                record["fields"][TARGETS_FIELD_COLUMN]
+            x["id"],
+            x["fields"][ADSPOWER_ID_COLUMN],
+            x["fields"][USERNAME_COLUMN],
+            map_attachment_field_to_urls(
+                x["fields"][TARGETS_FIELD_COLUMN]
             ),
-            parse_urls_from_attachment_field(
-                record["fields"][ALREADY_FOLLOWED_COLUMN]
+            map_attachment_field_to_urls(
+                x["fields"][ALREADY_FOLLOWED_COLUMN]
             ),
-            parse_urls_from_attachment_field(
-                record["fields"][FOLLOWS_US_COLUMN]
-            ),
+            map_attachment_field_to_urls(x["fields"][FOLLOWS_US_COLUMN]),
         )
 
     def update_usernames(self, usernames: list[str], field_column: str):
-        record = get_table().get(row.airtable_id)
-
         content = "\n".join(usernames)
 
-        result = get_table().upload_attachment(
-            record_id=row.airtable_id,
+        get_table().upload_attachment(
+            record_id=self.airtable_id,
             field=field_column,
             filename=DEFAULT_ATTACHMENT_FILE_NAME,
             content=content,
             content_type="text/plain",
         )
 
-        updated_record = get_table().get(row.airtable_id)
+        updated_record = get_table().get(self.airtable_id)
         processed_files = updated_record.get("fields", {}).get(
             field_column, []
         )
 
         if len(processed_files) > 1:
             get_table().update(
-                row.airtable_id,
+                self.airtable_id,
                 {field_column: [processed_files[-1]]},
             )
 
@@ -86,7 +83,13 @@ class Profile:
             self.followsus_targets_download_urls
         )
 
-    def set_status(self, status: str):
+    def update_processed_targets(self, usernames: list[str]):
+        self.update_usernames(usernames, ALREADY_FOLLOWED_COLUMN)
+
+    def update_followsus_targets(self, usernames: list[str]):
+        self.update_usernames(usernames, FOLLOWS_US_COLUMN)
+
+    def set_status(self, status: AirtableProfileStatus):
         get_table().update(self.airtable_id, {"Status": [status]})
 
     def update_follow_limit_reached(self):

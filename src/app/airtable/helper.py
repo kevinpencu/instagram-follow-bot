@@ -13,7 +13,7 @@ def get_table():
     return get_api().table(config["baseId"], config["tableName"])
 
 
-def parse_urls_from_attachment_field(attachment_field: dict) -> list[str]:
+def map_attachment_field_to_urls(attachment_field: dict) -> list[str]:
     return (
         [x["url"] for x in attachment_field]
         if attachment_field is not None and len(attachment_field) > 0
@@ -36,6 +36,6 @@ def download_and_parse_lines_from_url(self, urls: list[str]) -> list[str]:
         for line in x.splitlines():
             if len(line.strip()) <= 0:
                 continue
-            lines.append(username)
+            lines.append(line)
 
     return lines

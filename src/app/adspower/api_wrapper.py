@@ -1,4 +1,3 @@
-import requests
 from app.config import get_cfg
 from app.base_api import BaseApi
 from app.logger import get_logger
@@ -59,7 +58,7 @@ class AdsPowerApi(BaseApi):
         )
 
     def stop_profile(self, user_id: str):
-        self.get(f"/browser/stop", params={"user_id": user_id})
+        self.get("/browser/stop", params={"user_id": user_id})
 
 
 adspower = AdsPowerApi()

@@ -1,18 +1,8 @@
 import time
-from app.airtable.helper import (
-    get_profiles_mapped,
-    fetch_and_parse_usernames,
-    refresh_profile,
-    fetch_and_parse_processed_targets,
-    update_processed_targets,
-    update_status,
-    update_follow_limit_reached,
-)
-from app.airtable.models import Profile
-from flask import Flask, request, jsonify
+from app.airtable.profile_repository import AirTableProfileRepository
+from app.airtable.enums.profile_status import AirtableProfileStatus
+from app.airtable.models.profile import Profile
 from app.adspower.api_wrapper import adspower
-from concurrent.futures import ThreadPoolExecutor
-from app.app_status_info import app_status_info, BotStatus
 from app.executor import executor, get_executor, delay_executor
 from app.logger import get_logger
 from app.adspower_selenium import run_selenium
@@ -20,24 +10,26 @@ from app.automation.instagram_selenium import (
     run_follow_action,
     OperationState,
 )
-from app.airtable.enum_vals import AirtableProfileStatus
+from app.status_module.profile_status_manager import (
+    profile_status_manager,
+)
+from app.status_module.profile_status_types import BotStatus
 
 attempts_delay_map = {1: 0, 2: 10, 3: 60, 4: 300}
 
 
 def should_stop_profile(profile: Profile) -> bool:
-    current_profile = app_status_info.get_profile(profile.ads_power_id)
-    return (
-        current_profile is not None
-        and current_profile.bot_status == BotStatus.Stopping.value
-    )
+    return profile_status_manager.should_stop(profile.ads_power_id)
 
 
 def run_single(profile: Profile, attempt_no: int = 1):
-    profile = refresh_profile(profile)
-    if should_stop_profile(profile):
+    profile.refresh()
+
+    if profile_status_manager.should_stop(profile.ads_power_id):
         get_logger().info(f"Stopping profile {profile.username}")
-        app_status_info.set_status(profile.ads_power_id, BotStatus.Done)
+        profile_status_manager.set_status(
+            profile.ads_power_id, BotStatus.Done
+        )
         return
 
     if attempt_no in attempts_delay_map:
@@ -46,30 +38,30 @@ def run_single(profile: Profile, attempt_no: int = 1):
         get_logger().error(
             f"[INSTA-AGENT]: Profile {profile.username} 4th retry, abandoning..."
         )
-        app_status_info.set_status(profile.ads_power_id, BotStatus.Failed)
+        profile_status_manager.set_status(
+            profile.ads_power_id, BotStatus.Failed
+        )
         return
 
     try:
         get_logger().info(
             f"[INSTA-AGENT]: Initiating Profile {profile.username}"
         )
-
-        app_status_info.init_profile(
+        profile_status_manager.init_profile(
             profile.username, profile.ads_power_id, BotStatus.Pending
         )
-        app_status_info.unschedule(profile.ads_power_id)
 
         get_logger().info(
             f"[INSTA-AGENT]: Fetching targets for profile {profile.username}..."
         )
-        usernames = fetch_and_parse_usernames(profile)
+        usernames = profile.download_targets()
 
         # ERROR-CODE: No Usernames Found
         if len(usernames) <= 0:
             get_logger().error(
                 f"[INSTA-AGENT]: No targets found for profile {profile.username}, abandoning..."
             )
-            app_status_info.set_status(
+            profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.NoTargets
             )
             return
@@ -90,7 +82,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
             get_logger().error(
                 f"[INSTA-AGENT]: Profile {profile.username} start failed, abandoning..."
             )
-            app_status_info.set_status(
+            profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.AdsPowerStartFailed
             )
             delay_executor.submit(run_single, profile, attempt_no + 1)
@@ -108,7 +100,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
             get_logger().error(
                 f"[INSTA-AGENT]: Failed to create selenium instance for profile {profile.username}: {str(e)}"
             )
-            app_status_info.set_status(
+            profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.SeleniumFailed
             )
             return
@@ -117,20 +109,22 @@ def run_single(profile: Profile, attempt_no: int = 1):
             f"[INSTA-AGENT]: Profile {profile.username} starting for {len(usernames)} total usernames"
         )
 
-        app_status_info.set_total(profile.ads_power_id, len(usernames))
-        app_status_info.set_status(
+        profile_status_manager.set_total(
+            profile.ads_power_id, len(usernames)
+        )
+        profile_status_manager.set_status(
             profile.ads_power_id, BotStatus.Running
         )
 
-        processed_usernames = fetch_and_parse_processed_targets(profile)
+        processed_usernames = profile.download_processed_targets()
         for username in usernames:
-            if should_stop_profile(profile):
+            if profile_status_manager.should_stop(profile.ads_power_id):
                 get_logger().info(f"Stopping profile {profile.username}")
                 break
 
             if username in processed_usernames:
                 get_logger().info("Skipping already processed username!")
-                app_status_info.increment_already_followed(
+                profile_status_manager.increment_already_followed(
                     profile.ads_power_id
                 )
                 continue
@@ -140,7 +134,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 get_logger().info(
                     "AlreadyFollowed! Updating processed targets..."
                 )
-                app_status_info.increment_already_followed(
+                profile_status_manager.increment_already_followed(
                     profile.ads_power_id
                 )
                 processed_usernames.append(username)
@@ -150,7 +144,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 get_logger().info(
                     "FollowedOrRequested! Updating processed targets..."
                 )
-                app_status_info.increment_total_followed(
+                profile_status_manager.increment_total_followed(
                     profile.ads_power_id
                 )
                 processed_usernames.append(username)
@@ -158,7 +152,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
 
             if result == OperationState.PageUnavailable:
                 get_logger().info("AccountLoggedOut!")
-                app_status_info.increment_total_follow_failed(
+                profile_status_manager.increment_total_follow_failed(
                     profile.ads_power_id
                 )
                 processed_usernames.append(username)
@@ -166,59 +160,56 @@ def run_single(profile: Profile, attempt_no: int = 1):
 
             if result == OperationState.FailedToFollow:
                 get_logger().info("FailedToFollow!")
-                app_status_info.increment_total_follow_failed(
+                profile_status_manager.increment_total_follow_failed(
                     profile.ads_power_id
                 )
                 continue
 
             if result == OperationState.AccountIsSuspended:
                 get_logger().info("AccountIsSuspended!")
-                app_status_info.set_status(
+                profile_status_manager.set_status(
                     profile.ads_power_id, BotStatus.AccountIsSuspended
                 )
                 break
 
             if result == OperationState.AccountBanned:
                 get_logger().info("AccountBanned!")
-                app_status_info.set_status(
+                profile_status_manager.set_status(
                     profile.ads_power_id, BotStatus.Banned
                 )
 
                 # Update Airtable status to "Banned"
-                update_status(profile, AirtableProfileStatus.Banned.value)
+                profile.set_status(AirtableProfileStatus.Banned)
                 break
 
             if result == OperationState.FollowBlocked:
                 get_logger().info("FollowBlocked!")
-                app_status_info.set_status(
+                profile_status_manager.set_status(
                     profile.ads_power_id, BotStatus.FollowBlocked
                 )
                 # Update Airtable with the follow limit reached timestamp
-                update_follow_limit_reached(profile)
+                profile.update_follow_limit_reached()
                 break
 
             if result == OperationState.AccountLoggedOut:
                 get_logger().info("AccountLoggedOut!")
-                app_status_info.set_status(
+                profile_status_manager.set_status(
                     profile.ads_power_id, BotStatus.AccountLoggedOut
                 )
                 # Update Airtable status to "Logged Out"
-                update_status(
-                    profile, AirtableProfileStatus.LoggedOut.value
-                )
+                profile.set_status(AirtableProfileStatus.LoggedOut)
                 break
 
             if result == OperationState.SomethingWentWrongCheckpoint:
                 get_logger().info("SomethingWentWrongCheckpoint!")
-                app_status_info.set_status(
+                profile_status_manager.set_status(
                     profile.ads_power_id,
                     BotStatus.SomethingWentWrong,
                 )
 
                 # Update Airtable status to "SomethingWentWrongCheckpoint"
-                update_status(
-                    profile,
-                    AirtableProfileStatus.SomethingWentWrongCheckpoint.value,
+                profile.set_status(
+                    AirtableProfileStatus.SomethingWentWrongCheckpoint
                 )
                 break
 
@@ -226,41 +217,37 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 get_logger().info(
                     "YourAccountWasCompromised/ChangePassword Checkpoint!"
                 )
-                app_status_info.set_status(
+                profile_status_manager.set_status(
                     profile.ads_power_id,
                     BotStatus.AccountCompromised,
                 )
 
                 # Update Airtable status to "ChangePasswordCheckpoint"
-                update_status(
-                    profile,
-                    AirtableProfileStatus.ChangePasswordCheckpoint.value,
+                profile.set_status(
+                    AirtableProfileStatus.ChangePasswordCheckpoint
                 )
                 break
 
             if result == OperationState.BadProxy:
                 get_logger().info("Bad Proxy 429!")
-                app_status_info.set_status(
+                profile_status_manager.set_status(
                     profile.ads_power_id,
                     BotStatus.BadProxy,
                 )
 
                 # Update Airtable status to "BadProxy"
-                update_status(
-                    profile,
-                    AirtableProfileStatus.BadProxy.value,
-                )
+                profile.set_status(AirtableProfileStatus.BadProxy)
                 break
 
-        update_processed_targets(profile, processed_usernames)
-        current_profile = app_status_info.get_profile(
+        profile.update_processed_targets(processed_usernames)
+        current_profile_stats = profile_status_manager.get_profile_stats(
             profile.ads_power_id
         )
-        if current_profile and (
-            current_profile.bot_status == BotStatus.Running.value
-            or current_profile.bot_status == BotStatus.Stopping.value
+        if (
+            current_profile_stats is not None
+            and current_profile_stats.is_ok()
         ):
-            app_status_info.set_status(
+            profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.Done
             )
             get_logger().info(
@@ -271,13 +258,15 @@ def run_single(profile: Profile, attempt_no: int = 1):
         get_logger().error(
             f"[INSTA-AGENT]: Run single failed for profile {profile.username}. Printing exception and shutting down: {str(e)}."
         )
-        app_status_info.set_status(profile.ads_power_id, BotStatus.Failed)
+        profile_status_manager.set_status(
+            profile.ads_power_id, BotStatus.Failed
+        )
         delay_executor.submit(run_single, profile, attempt_no + 1)
     finally:
         get_logger().error(
             f"[INSTA-AGENT]: Run ended for profile {profile.username}. Updating remote tables and shutting down profile"
         )
-        update_processed_targets(profile, processed_usernames)
+        profile.update_processed_targets(processed_usernames)
 
         try:
             selenium_instance.quit()
@@ -297,7 +286,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
 def do_start_profiles(profiles, max_workers=4):
     """Common logic to start automation for a list of profiles"""
     for profile in profiles:
-        app_status_info.schedule(profile.ads_power_id)
+        profile_status_manager.schedule_profile(profile.ads_power_id)
 
     profile_executor = get_executor(max_workers)
     for profile in profiles:
@@ -307,13 +296,13 @@ def do_start_profiles(profiles, max_workers=4):
 
 def do_start_all(max_workers=4):
     """Start automation for all profiles"""
-    profiles = get_profiles_mapped()
+    profiles = AirTableProfileRepository().get_profiles()
     do_start_profiles(profiles, max_workers)
 
 
 def do_start_selected(ads_power_ids, max_workers=4):
     """Start automation for selected profiles by AdsPower IDs"""
-    all_profiles = get_profiles_mapped()
+    all_profiles = AirTableProfileRepository().get_profiles()
     selected_profiles = [
         profile
         for profile in all_profiles
@@ -341,4 +330,4 @@ def agent_start_selected(ads_power_ids: list, max_workers=4):
 
 
 def agent_stop():
-    app_status_info.run_stop_action()
+    profile_status_manager.stop_all()

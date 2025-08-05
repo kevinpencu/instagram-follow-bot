@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class AirtableProfileStatus(Enum):
+class AirtableProfileStatus(str, Enum):
     LoggedIn = "Logged In"
     LoggedOut = "Logged Out"
     WaitingForAppeal = "Waiting for Appeal"

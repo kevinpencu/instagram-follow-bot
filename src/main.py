@@ -1,11 +1,7 @@
-from app.airtable.helper import (
-    get_profiles,
-    get_profiles_mapped,
+from app.status_module.profile_status_manager import (
+    profile_status_manager,
 )
-from flask import Flask, request, jsonify
-from app.adspower.api_wrapper import adspower
-from app.app_status_info import app_status_info
-from app.executor import executor, get_executor
+from flask import jsonify, Flask, request
 from app.insta_agent import (
     agent_start_all,
     agent_start_selected,
@@ -13,8 +9,8 @@ from app.insta_agent import (
 )
 from app.logger import get_logger
 from flask_cors import CORS
-import code
 from app.errors import init_handler
+from app.airtable.profile_repository import AirTableProfileRepository
 
 app = Flask(__name__)
 CORS(
@@ -29,7 +25,7 @@ init_handler(app)
 @app.route("/profiles")
 def profiles():
     try:
-        return get_profiles_mapped()
+        return AirTableProfileRepository.get_profiles()
     except Exception as e:
         get_logger().error(f"[API]: Failed to get profiles: {str(e)}")
         return (
@@ -45,7 +41,7 @@ def stop_all():
     try:
         agent_stop()
         return {}
-    except Exception as e:
+    except Exception:
         pass
     return {}
 
@@ -133,7 +129,7 @@ def start_selected():
 @app.route("/status")
 def status():
     try:
-        return app_status_info.get_all()
+        return profile_status_manager.get_route_data()
     except Exception as e:
         get_logger().error(f"[API]: Failed to get status: {str(e)}")
         return (
@@ -142,32 +138,6 @@ def status():
             ),
             500,
         )
-
-
-def start_debug_shell():
-    import time
-    from app.airtable.helper import (
-        get_profiles_mapped,
-        fetch_and_parse_usernames,
-        refresh_profile,
-        fetch_and_parse_processed_targets,
-        update_processed_targets,
-    )
-    from flask import Flask, request, jsonify
-    from app.adspower.api_wrapper import adspower
-    from concurrent.futures import ThreadPoolExecutor
-    from app.app_status_info import app_status_info, BotStatus
-    from app.executor import executor, get_executor
-    from app.logger import get_logger
-    from app.adspower_selenium import run_selenium
-    from app.automation.instagram_selenium import (
-        run_follow_action,
-        OperationState,
-    )
-
-    variables = globals().copy()
-    variables.update(locals())
-    code.interact(local=variables)
 
 
 if __name__ == "__main__":

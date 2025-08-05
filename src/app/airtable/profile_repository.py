@@ -1,6 +1,6 @@
-from app.config import get_cfg
-from app.airtable.models.profile import Profipe
-from app.airtable.helper import get_table
+from app.airtable.models.profile import Profile
+from app.airtable.helper import get_table, config
+from app.logger import get_logger
 
 TARGETS_FIELD_COLUMN = "Targets"
 ADSPOWER_ID_COLUMN = "AdsPower ID"
@@ -21,7 +21,8 @@ class AirTableProfileRepository:
     def __init__(self):
         pass
 
-    def get_profiles(self) -> list[Profile]:
+    @staticmethod
+    def get_profiles() -> list[Profile]:
         table = get_table()
         all_records = []
 
