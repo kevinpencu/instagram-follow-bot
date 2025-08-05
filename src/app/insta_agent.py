@@ -2,13 +2,13 @@ import time
 from app.airtable.helper import (
     get_profiles_mapped,
     fetch_and_parse_usernames,
-    ProfileDataRow,
     refresh_profile,
     fetch_and_parse_processed_targets,
     update_processed_targets,
     update_status,
     update_follow_limit_reached,
 )
+from app.airtable.models import Profile
 from flask import Flask, request, jsonify
 from app.adspower.api_wrapper import adspower
 from concurrent.futures import ThreadPoolExecutor
@@ -25,7 +25,7 @@ from app.airtable.enum_vals import AirtableProfileStatus
 attempts_delay_map = {1: 0, 2: 10, 3: 60, 4: 300}
 
 
-def should_stop_profile(profile: ProfileDataRow) -> bool:
+def should_stop_profile(profile: Profile) -> bool:
     current_profile = app_status_info.get_profile(profile.ads_power_id)
     return (
         current_profile is not None
@@ -33,7 +33,7 @@ def should_stop_profile(profile: ProfileDataRow) -> bool:
     )
 
 
-def run_single(profile: ProfileDataRow, attempt_no: int = 1):
+def run_single(profile: Profile, attempt_no: int = 1):
     profile = refresh_profile(profile)
     if should_stop_profile(profile):
         get_logger().info(f"Stopping profile {profile.username}")
@@ -46,9 +46,7 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
         get_logger().error(
             f"[INSTA-AGENT]: Profile {profile.username} 4th retry, abandoning..."
         )
-        app_status_info.set_status(
-            profile.ads_power_id, BotStatus.Failed
-        )
+        app_status_info.set_status(profile.ads_power_id, BotStatus.Failed)
         return
 
     try:
@@ -205,7 +203,9 @@ def run_single(profile: ProfileDataRow, attempt_no: int = 1):
                     profile.ads_power_id, BotStatus.AccountLoggedOut
                 )
                 # Update Airtable status to "Logged Out"
-                update_status(profile, AirtableProfileStatus.LoggedOut.value)
+                update_status(
+                    profile, AirtableProfileStatus.LoggedOut.value
+                )
                 break
 
             if result == OperationState.SomethingWentWrongCheckpoint:

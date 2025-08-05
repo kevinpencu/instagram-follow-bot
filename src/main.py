@@ -149,7 +149,6 @@ def start_debug_shell():
     from app.airtable.helper import (
         get_profiles_mapped,
         fetch_and_parse_usernames,
-        ProfileDataRow,
         refresh_profile,
         fetch_and_parse_processed_targets,
         update_processed_targets,

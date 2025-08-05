@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from app.selenium_utils import navigate_to, wait_page_loaded
 from app.logger import get_logger
-from app.airtable.helper import ProfileDataRow
+from app.airtable.models import Profile
 from selenium.common.exceptions import (
     TimeoutException,
 )
@@ -199,7 +199,7 @@ def is_logged_out(driver: webdriver.Chrome):
 
 
 def run_accept_requests_action(
-    driver: webdriver.Chrome, profile: ProfileDataRow
+    driver: webdriver.Chrome, profile: Profile
 ):
     get_logger().info(
         f"[INSTA-SELENIUM]: Starting Accept Requests Action for profile {profile.username}..."
