@@ -24,7 +24,7 @@ def map_attachment_field_to_urls(attachment_field: dict) -> list[str]:
     )
 
 
-def download_and_parse_lines_from_url(self, urls: list[str]) -> list[str]:
+def download_and_parse_lines_from_url(urls: list[str]) -> list[str]:
     downloads = []
 
     for link in urls:

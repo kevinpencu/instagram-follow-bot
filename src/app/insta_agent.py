@@ -259,12 +259,15 @@ def run_single(profile: Profile, attempt_no: int = 1):
         )
         delay_executor.submit(run_single, profile, attempt_no + 1)
     finally:
-        get_logger().error(
+        get_logger().info(
             f"[INSTA-AGENT]: Run ended for profile {profile.username}. Updating remote tables and shutting down profile"
         )
         profile.update_processed_targets(processed_usernames)
 
         try:
+            get_logger().info(
+                f"[INSTA-AGENT]: Quitting Selenium Instance for username {profile.username}..."
+            )
             selenium_instance.quit()
         except Exception as e:
             get_logger().error(
@@ -272,6 +275,9 @@ def run_single(profile: Profile, attempt_no: int = 1):
             )
 
         try:
+            get_logger().info(
+                f"[INSTA-AGENT]: Stopping AdsPower profile {profile.username}..."
+            )
             adspower.stop_profile(profile.ads_power_id)
         except Exception as e:
             get_logger().error(

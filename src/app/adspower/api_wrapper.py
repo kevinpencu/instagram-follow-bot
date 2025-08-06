@@ -58,7 +58,7 @@ class AdsPowerApi(BaseApi):
         )
 
     def stop_profile(self, user_id: str):
-        self.get("/browser/stop", params={"user_id": user_id})
+        return self.get("/browser/stop", params={"user_id": user_id})
 
 
 adspower = AdsPowerApi()

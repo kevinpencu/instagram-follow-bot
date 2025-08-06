@@ -5,6 +5,7 @@ from app.airtable.models.profile import (
     USERNAME_COLUMN,
     ALREADY_FOLLOWED_COLUMN,
     FOLLOWS_US_COLUMN,
+    REACHED_FOLLOW_LIMIT
 )
 from app.airtable.helper import get_table, config
 from app.logger import get_logger
@@ -15,6 +16,7 @@ ALL_FIELDS = [
     USERNAME_COLUMN,
     ALREADY_FOLLOWED_COLUMN,
     FOLLOWS_US_COLUMN,
+    REACHED_FOLLOW_LIMIT
 ]
 
 

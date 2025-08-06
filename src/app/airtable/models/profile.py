@@ -13,6 +13,7 @@ ADSPOWER_ID_COLUMN = "AdsPower ID"
 USERNAME_COLUMN = "Username"
 ALREADY_FOLLOWED_COLUMN = "Already Followed"
 FOLLOWS_US_COLUMN = "Follows Us"
+REACHED_FOLLOW_LIMIT = "Reached Follow Limit"
 
 
 @dataclass
@@ -23,6 +24,7 @@ class Profile:
     target_download_urls: list[str]
     processed_targets_download_urls: list[str]
     followsus_targets_download_urls: list[str]
+    reached_follow_limit_date: str
 
     @staticmethod
     def from_dict(x: dict):
@@ -39,6 +41,7 @@ class Profile:
             map_attachment_field_to_urls(
                 x["fields"].get(FOLLOWS_US_COLUMN)
             ),
+            x["fields"].get(REACHED_FOLLOW_LIMIT)
         )
 
     def update_usernames(self, usernames: list[str], field_column: str):
@@ -68,7 +71,16 @@ class Profile:
         if x is None:
             return
 
-        self.__dict__.update(Profile.from_dict(x))
+        new_profile = Profile.from_dict(x)
+
+        self.target_download_urls = new_profile.target_download_urls
+        self.processed_targets_download_urls = (
+            new_profile.processed_targets_download_urls
+        )
+        self.followsus_targets_download_urls = (
+            new_profile.followsus_targets_download_urls
+        )
+        self.reached_follow_limit_date = new_profile.reached_follow_limit_date
 
     def download_targets(self) -> list[str]:
         return download_and_parse_lines_from_url(
@@ -98,7 +110,7 @@ class Profile:
         get_table().update(
             self.airtable_id,
             {
-                "Reached Follow Limit": datetime.now(
+                REACHED_FOLLOW_LIMIT: datetime.now(
                     timezone.utc
                 ).isoformat()
             },
