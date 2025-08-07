@@ -1,5 +1,5 @@
 from app.config import get_cfg
-from app.base_api import BaseApi
+from app.adspower.base_api import BaseApi
 from app.logger import get_logger
 from dataclasses import dataclass
 
