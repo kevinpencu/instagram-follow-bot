@@ -167,6 +167,7 @@ export default function Index() {
       accountLoggedOut: { variant: 'destructive' as const, label: 'Account Logged Out', animate: false },
       badproxy: { variant: 'destructive' as const, label: 'Bad Proxy', animate: false },
       accountSuspended: { variant: 'destructive' as const, label: 'Account Suspended', animate: false },
+      retrying: { variant: 'secondary' as const, label: 'Retrying', animate: true },
       stopping: { variant: 'default' as const, label: 'Stopping', animate: true },
       somethingwentwrong: { variant: 'destructive' as const, label: 'Something Went Wrong Checkpoint', animate: false },
       accountcompromised: { variant: 'destructive' as const, label: 'Change Password/Compromised Checkpoint', animate: false },
