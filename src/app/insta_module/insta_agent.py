@@ -2,14 +2,12 @@ import time
 from app.airtable.profile_repository import AirTableProfileRepository
 from app.airtable.enums.profile_status import AirtableProfileStatus
 from app.airtable.models.profile import Profile
+from app.insta.instagram_selenium import InstagramWrapper
 from app.adspower.api_wrapper import adspower
 from app.executor import executor, get_executor, delay_executor
 from app.logger import get_logger
 from app.adspower_selenium import run_selenium
-from app.automation.instagram_selenium import (
-    run_follow_action,
-    OperationState,
-)
+from app.insta.enums.checkpoint import Checkpoint
 from app.status_module.profile_status_manager import (
     profile_status_manager,
 )
@@ -125,8 +123,10 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 )
                 continue
 
-            result = run_follow_action(selenium_instance, username)
-            if result == OperationState.AlreadyFollowed:
+            result = InstagramWrapper(selenium_instance).follow_action(
+                username
+            )
+            if result == Checkpoint.AlreadyFollowedOrRequested:
                 get_logger().info(
                     "AlreadyFollowed! Updating processed targets..."
                 )
@@ -136,7 +136,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 processed_usernames.append(username)
                 continue
 
-            if result == OperationState.FollowedOrRequested:
+            if result == Checkpoint.PageFollowedOrRequested:
                 get_logger().info(
                     "FollowedOrRequested! Updating processed targets..."
                 )
@@ -146,7 +146,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 processed_usernames.append(username)
                 continue
 
-            if result == OperationState.PageUnavailable:
+            if result == Checkpoint.PageUnavailable:
                 get_logger().info("AccountLoggedOut!")
                 profile_status_manager.increment_total_follow_failed(
                     profile.ads_power_id
@@ -154,21 +154,21 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 processed_usernames.append(username)
                 continue
 
-            if result == OperationState.FailedToFollow:
+            if result == Checkpoint.FailedToFollow:
                 get_logger().info("FailedToFollow!")
                 profile_status_manager.increment_total_follow_failed(
                     profile.ads_power_id
                 )
                 continue
 
-            if result == OperationState.AccountIsSuspended:
+            if result == Checkpoint.AccountSuspended:
                 get_logger().info("AccountIsSuspended!")
                 profile_status_manager.set_status(
                     profile.ads_power_id, BotStatus.AccountIsSuspended
                 )
                 break
 
-            if result == OperationState.AccountBanned:
+            if result == Checkpoint.AccountBanned:
                 get_logger().info("AccountBanned!")
                 profile_status_manager.set_status(
                     profile.ads_power_id, BotStatus.Banned
@@ -178,7 +178,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 profile.set_status(AirtableProfileStatus.Banned)
                 break
 
-            if result == OperationState.FollowBlocked:
+            if result == Checkpoint.FollowBlocked:
                 get_logger().info("FollowBlocked!")
                 profile_status_manager.set_status(
                     profile.ads_power_id, BotStatus.FollowBlocked
@@ -187,7 +187,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 profile.update_follow_limit_reached()
                 break
 
-            if result == OperationState.AccountLoggedOut:
+            if result == Checkpoint.AccountLoggedOut:
                 get_logger().info("AccountLoggedOut!")
                 profile_status_manager.set_status(
                     profile.ads_power_id, BotStatus.AccountLoggedOut
@@ -196,7 +196,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 profile.set_status(AirtableProfileStatus.LoggedOut)
                 break
 
-            if result == OperationState.SomethingWentWrongCheckpoint:
+            if result == Checkpoint.SomethingWentWrongCheckpoint:
                 get_logger().info("SomethingWentWrongCheckpoint!")
                 profile_status_manager.set_status(
                     profile.ads_power_id,
@@ -209,7 +209,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 )
                 break
 
-            if result == OperationState.YourAccountWasCompromised:
+            if result == Checkpoint.AccountCompromised:
                 get_logger().info(
                     "YourAccountWasCompromised/ChangePassword Checkpoint!"
                 )
@@ -224,7 +224,7 @@ def run_single(profile: Profile, attempt_no: int = 1):
                 )
                 break
 
-            if result == OperationState.BadProxy:
+            if result == Checkpoint.BadProxy:
                 get_logger().info("Bad Proxy 429!")
                 profile_status_manager.set_status(
                     profile.ads_power_id,
@@ -286,7 +286,6 @@ def run_single(profile: Profile, attempt_no: int = 1):
 
 
 def do_start_profiles(profiles: list[Profile], max_workers=4):
-    """Common logic to start automation for a list of profiles"""
     for profile in profiles:
         profile_status_manager.schedule_profile(profile.ads_power_id)
 
@@ -297,13 +296,11 @@ def do_start_profiles(profiles: list[Profile], max_workers=4):
 
 
 def do_start_all(max_workers: int = 4):
-    """Start automation for all profiles"""
     profiles = AirTableProfileRepository().get_profiles()
     do_start_profiles(profiles, max_workers)
 
 
 def do_start_selected(ads_power_ids: list[str], max_workers: int = 4):
-    """Start automation for selected profiles by AdsPower IDs"""
     all_profiles = AirTableProfileRepository().get_profiles()
     selected_profiles = [
         profile
