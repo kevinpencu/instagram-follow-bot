@@ -15,6 +15,9 @@ cfg = {
         "apiUrl": os.getenv("ADSPOWER_API_URL"),
         "apiKey": os.getenv("ADSPOWER_API_KEY"),
     },
+    "settings": {
+        "logToFile": os.getenv("LOG_TO_FILE")
+    }
 }
 
 
