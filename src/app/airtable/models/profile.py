@@ -41,7 +41,7 @@ class Profile:
             map_attachment_field_to_urls(
                 x["fields"].get(FOLLOWS_US_COLUMN)
             ),
-            x["fields"].get(REACHED_FOLLOW_LIMIT)
+            x["fields"].get(REACHED_FOLLOW_LIMIT),
         )
 
     def update_usernames(self, usernames: list[str], field_column: str):
@@ -80,7 +80,9 @@ class Profile:
         self.followsus_targets_download_urls = (
             new_profile.followsus_targets_download_urls
         )
-        self.reached_follow_limit_date = new_profile.reached_follow_limit_date
+        self.reached_follow_limit_date = (
+            new_profile.reached_follow_limit_date
+        )
 
     def download_targets(self) -> list[str]:
         return download_and_parse_lines_from_url(
