@@ -44,10 +44,18 @@ class AdsPowerApi(BaseApi):
             "enable_password_saving": 0,
         }
 
-        resp = self.get("/browser/start", payload)
-        json = resp.json()
+        json = self.get("/browser/active", payload).json()
         if json.get("code") != 0:
-            get_logger().error("[ADSPOWER]: Failed to start profile.")
+            get_logger().error(
+                "[ADSPOWER]: Failed to start profile via check status. Testing via browser start."
+            )
+            get_logger().error(f"[ADSPOWER]: {json}")
+
+        json = self.get("/browser/start", payload).json()
+        if json.get("code") != 0:
+            get_logger().error(
+                "[ADSPOWER]: Failed to start profile via browser start. Abandoning"
+            )
             get_logger().error(f"[ADSPOWER]: {json}")
             return None
 
