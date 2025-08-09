@@ -125,11 +125,11 @@ class InstagramService:
         self, profile: Profile, attempt_no: int = 0
     ) -> int:
         if profile_manager.should_stop(profile.ads_power_id):
-            profile_manager.mark_as_done(profile.ads_power_id)
+            profile_manager.set_status(profile.ads_power_id, BotStatus.Done)
             return None
 
         if self.on_attempt_delay(attempt_no) is False:
-            profile_status_manager.mark_failed(profile.ads_power_id)
+            profile_manager.set_status(profile.ads_power_id, BotStatus.Failed)
             return None
 
         profile_status_manager.init_profile(profile)
