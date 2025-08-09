@@ -33,7 +33,7 @@ class InstagramService:
         }
 
     def on_attempt_delay(self, attempt_no: int = 1):
-        attempts_delay_map = {1: 0, 2: 10, 3: 60, 4: 300}
+        attempts_delay_map = {0: 0, 1: 0, 2: 10, 3: 60, 4: 300}
         if attempt_no not in attempts_delay_map:
             return False
         time.sleep(attempts_delay_map[attempt_no])
@@ -54,7 +54,9 @@ class InstagramService:
     def start_all(self, max_workers: int = 4):
         pass
 
-    def do_start_selected(self, selected_profiles: list[Profile], max_workers: int = 4):
+    def do_start_selected(
+        self, selected_profiles: list[Profile], max_workers: int = 4
+    ):
         self.start_profiles(selected_profiles, max_workers)
 
     def start_selected(
@@ -70,7 +72,9 @@ class InstagramService:
         if len(selected_profiles) == 0:
             return
 
-        executor.submit(self.do_start_selected, selected_profiles, max_workers)
+        executor.submit(
+            self.do_start_selected, selected_profiles, max_workers
+        )
 
     def stop_all(self):
         profile_status_manager.stop_all()
@@ -354,7 +358,7 @@ class InstagramService:
             )
 
     def on_retry(self, profile: Profile, attempt_no: int) -> bool:
-        if attempt_no > 4:
+        if self.on_attempt_delay(attempt_no) is False:
             return False
 
         get_logger().error(
@@ -407,9 +411,11 @@ class InstagramService:
                     username,
                 )
 
+                # This means that the profile has been shut down
                 if res is False:
                     return
 
+            # Shutdown profile
             self.shutdown_profile(
                 profile,
                 selenium_instance,

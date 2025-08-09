@@ -37,7 +37,7 @@ class InstagramWrapper:
         if cp is not None:
             if self.bypass_cp(cp) is False:
                 get_logger().info(
-                    f"[INSTAWRAPPER, TARGET: {target}]: Bypass for {cp} failed"
+                    f"[INSTAWRAPPER, TARGET: {target}]: Bypass for {cp} non-existing or failed"
                 )
                 return cp
 
