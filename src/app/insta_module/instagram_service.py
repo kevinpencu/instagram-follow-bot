@@ -269,7 +269,7 @@ class InstagramService:
         adspower_response = adspower.start_profile(profile.ads_power_id)
         if (
             adspower_response is None
-            and self.on_retry(profile, attempt_no) is True
+            and self.on_retry(profile, attempt_no + 1) is True
         ):
             return None
 
@@ -291,7 +291,7 @@ class InstagramService:
         selenium_instance = run_selenium(adspower_response)
         if (
             selenium_instance is None
-            and self.on_retry(profile, attempt_no) is True
+            and self.on_retry(profile, attempt_no + 1) is True
         ):
             return None
 
