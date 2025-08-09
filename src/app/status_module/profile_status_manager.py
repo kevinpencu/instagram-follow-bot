@@ -31,7 +31,6 @@ class ProfileStatusManager:
         self._profile_stats.init_profile(
             profile.username, profile.ads_power_id, BotStatus.Pending
         )
-        self._profile_stats.unschedule(profile.ads_power_id)
 
     @thread_safe
     def schedule_profile(self, ads_power_id: str):

@@ -32,7 +32,7 @@ class InstagramService:
             Checkpoint.BadProxy: self.bad_proxy_handler,
         }
 
-    def on_attempt_delay(self, attempt_no: int = 0):
+    def on_attempt_delay(self, attempt_no: int = 1):
         attempts_delay_map = {1: 0, 2: 10, 3: 60, 4: 300}
         if attempt_no not in attempts_delay_map:
             return False
@@ -48,7 +48,7 @@ class InstagramService:
 
         for profile in profiles:
             get_logger().info(f"Starting profile: {profile.username}")
-            profile_executor.submit(self.run_single, profile, 0)
+            profile_executor.submit(self.run_single, profile, 1)
             time.sleep(2)
 
     def start_all(self, max_workers: int = 4):
@@ -235,31 +235,32 @@ class InstagramService:
         if cp not in self._handlers:
             return True
 
-        return self._handlers[cp](profile, processed_targets, target)
+        return self._handlers[cp](
+            profile, driver, processed_targets, target
+        )
 
     def prepare_profile(
-        self, profile: Profile, attempt_no: int = 0
+        self, profile: Profile, attempt_no: int = 1
     ) -> webdriver.Chrome:
-        if profile_status_manager.should_stop(profile.ads_power_id):
-            profile_status_manager.set_status(
-                profile.ads_power_id, BotStatus.Done
-            )
-            return None
+        get_logger().info("We're here one.")
+        profile_status_manager.init_profile(profile)
 
         if self.on_attempt_delay(attempt_no) is False:
+            get_logger().info("We're here two.")
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.Failed
             )
             return None
 
-        profile_status_manager.init_profile(profile)
-
         usernames = profile.download_targets()
         if len(usernames) <= 0:
+            get_logger().info("We're here three.")
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.NoTargets
             )
             return None
+
+        get_logger().info("We're here four.")
 
         adspower_response = adspower.start_profile(profile.ads_power_id)
         if (
@@ -343,6 +344,10 @@ class InstagramService:
         if attempt_no > 4:
             return False
 
+        get_logger().error(
+            f"Scheduling retry for profile {profile.username}"
+        )
+
         profile_status_manager.set_status(
             profile.ads_power_id, BotStatus.Retrying
         )
@@ -350,7 +355,7 @@ class InstagramService:
 
         return True
 
-    def run_single(self, profile: Profile, attempt_no: int = 0):
+    def run_single(self, profile: Profile, attempt_no: int = 1):
         get_logger().info(f"Running Single: {profile.username}")
         try:
             selenium_instance = self.prepare_profile(profile, attempt_no)

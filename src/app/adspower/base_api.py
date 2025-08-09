@@ -11,7 +11,7 @@ class BaseApi:
     def get(self, endpoint: str, params: dict = {}):
         try:
             return re.get(
-                f"{self.apiUrl}{endpoint}", params=params, timeout=30
+                f"{self.apiUrl}{endpoint}", params=params, timeout=90
             )
         except re.exceptions.RequestException as e:
             get_logger().error(
@@ -22,7 +22,7 @@ class BaseApi:
     def post(self, endpoint: str, payload: dict):
         try:
             return re.post(
-                f"{self.apiUrl}{endpoint}", data=payload, timeout=30
+                f"{self.apiUrl}{endpoint}", data=payload, timeout=90
             )
         except re.exceptions.RequestException as e:
             get_logger().error(

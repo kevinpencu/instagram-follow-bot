@@ -48,7 +48,9 @@ class ProfileStatusContext:
         self, username: str, ads_power_id: str, status: BotStatus
     ):
         if ads_power_id in self.active_profiles:
-            return
+            del self.active_profiles[ads_power_id]
+
+        self.unschedule(ads_power_id)
 
         self.active_profiles[ads_power_id] = ActiveProfileStats(
             ads_power_id, username, status, 0, 0, 0, 0

@@ -85,7 +85,7 @@ CONDITIONS = {
     Checkpoint.PageUnavailable: CheckpointCondition(
         checkpoint=Checkpoint.PageUnavailable,
         xpath_item_len=0,
-        xpath_query="Sorry, this page isn't available.",
+        xpath_query='//*[text()="Sorry, this page isn\'t available."]',
         cond_operator=operator.gt,
     ),
 }
