@@ -1,5 +1,5 @@
 from app.airtable.models.profile import Profile
-from app.executor import get_executor, delay_executor
+from app.executor import get_executor, delay_executor, executor
 import traceback
 import time
 from app.airtable.enums.profile_status import AirtableProfileStatus
@@ -54,6 +54,9 @@ class InstagramService:
     def start_all(self, max_workers: int = 4):
         pass
 
+    def do_start_selected(self, selected_profiles: list[Profile], max_workers: int = 4):
+        self.start_profiles(selected_profiles, max_workers)
+
     def start_selected(
         self, ads_power_ids: list[str], max_workers: int = 4
     ):
@@ -67,7 +70,7 @@ class InstagramService:
         if len(selected_profiles) == 0:
             return
 
-        self.start_profiles(selected_profiles, max_workers)
+        executor.submit(self.do_start_selected, selected_profiles, max_workers)
 
     def stop_all(self):
         profile_status_manager.stop_all()
