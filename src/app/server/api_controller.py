@@ -4,6 +4,7 @@ from app.insta_module.instagram_service import instagram_service
 from app.status_module.profile_status_manager import (
     profile_status_manager,
 )
+from app.logger import get_logger
 import traceback
 
 
@@ -33,10 +34,12 @@ class MainApiController:
         try:
             return AirTableProfileRepository().get_profiles()
         except Exception as e:
+            error_msg = f"\n{str(e)} \n {traceback.format_exc()}"
+            get_logger().error(f"Get Profiles Failed{error_msg}")
             return (
                 jsonify(
                     error="internal_error",
-                    message=f"Failed to fetch profiles {str(e)} \n {traceback.format_exc()}",
+                    message=f"Failed to fetch profiles {error_msg}",
                 ),
                 500,
             )
@@ -54,10 +57,12 @@ class MainApiController:
         try:
             instagram_service.start_all(self.get_max_workers())
         except Exception as e:
+            error_msg = f"\n{str(e)} \n {traceback.format_exc()}"
+            get_logger().error(f"Start All Failed{error_msg}")
             return (
                 jsonify(
                     error="internal_error",
-                    message=f"Start All Failed {str(e)} \n {traceback.format_exc}",
+                    message=f"Start All Failed {error_msg}",
                 ),
                 500,
             )
@@ -70,10 +75,12 @@ class MainApiController:
                 self.get_adspowerids(), self.get_max_workers()
             )
         except Exception as e:
+            error_msg = f"\n{str(e)} \n {traceback.format_exc()}"
+            get_logger().error(f"Start Selected Failed{error_msg}")
             return (
                 jsonify(
                     error="internal_error",
-                    message=f"Start Selected Failed {str(e)} \n {traceback.format_exc}",
+                    message=f"Start Selected Failed {error_msg}",
                 ),
                 500,
             )
@@ -84,10 +91,12 @@ class MainApiController:
         try:
             return profile_status_manager.get_route_data()
         except Exception as e:
+            error_msg = f"\n{str(e)} \n {traceback.format_exc()}"
+            get_logger().error(f"Status Failed{error_msg}")
             return (
                 jsonify(
                     error="internal_error",
-                    message=f"Status Get Failed {str(e)} \n {traceback.format_exc}",
+                    message=f"Status Get Failed{error_msg}",
                 ),
                 500,
             )
