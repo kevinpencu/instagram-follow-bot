@@ -230,12 +230,12 @@ class InstagramService:
         driver: webdriver.Chrome,
         processed_targets: list[str],
         status: BotStatus,
-        attempt_no: int = 0,
+        shutdown_attempt_no: int = 0,
     ):
-        if attempt_no >= 3:
+        if shutdown_attempt_no >= 3:
             return
 
-        if attempt_no == 0:
+        if shutdown_attempt_no == 0:
             profile.update_processed_targets(processed_targets)
 
         stats = profile_status_manager.get_profile_stats(
@@ -257,7 +257,7 @@ class InstagramService:
         except Exception as e:
             time.sleep(5)
             self.shutdown_profile(
-                profile, driver, processed_targets, status, attempt_no + 1
+                profile, driver, processed_targets, status, shutdown_attempt_no + 1
             )
 
     def on_retry(self, profile: Profile, attempt_no: int) -> bool:
