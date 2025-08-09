@@ -50,6 +50,8 @@ class Profile:
         )
 
     def update_usernames(self, usernames: list[str], field_column: str):
+        if len(usernames) <= 0:
+            usernames = ["mandatory_first_entry"]
         content = "\n".join(usernames)
 
         get_table().upload_attachment(

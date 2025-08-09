@@ -18,10 +18,10 @@ if log_to_file != "false" and log_to_file != None:
 
     file_handler = logging.FileHandler(log_file_path)
     file_handler.setFormatter(log_formatter)
-    file_handler.setLevel(logging.INFO)
+    file_handler.setLevel(logging.DEBUG)
 
     logging.getLogger().addHandler(file_handler)
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.DEBUG)
 
     sys.stdout = open(log_file_path, "a")
     sys.stderr = open(log_file_path, "a")
