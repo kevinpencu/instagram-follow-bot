@@ -374,6 +374,7 @@ class InstagramService:
 
     def run_single(self, profile: Profile, attempt_no: int = 1):
         get_logger().info(f"Running Single: {profile.username}")
+        selenium_instance = None
         try:
             selenium_instance = self.prepare_profile(profile, attempt_no)
 
@@ -400,20 +401,26 @@ class InstagramService:
                     )
                     continue
 
-                # Run follow action
-                res = self.on_handle_status(
-                    InstagramWrapper(selenium_instance).follow_action(
-                        username
-                    ),
-                    profile,
-                    selenium_instance,
-                    processed_targets,
-                    username,
-                )
+                try:
+                    # Run follow action
+                    res = self.on_handle_status(
+                        InstagramWrapper(selenium_instance).follow_action(
+                            username
+                        ),
+                        profile,
+                        selenium_instance,
+                        processed_targets,
+                        username,
+                    )
 
-                # This means that the profile has been shut down
-                if res is False:
-                    return
+                    # This means that the profile has been shut down
+                    if res is False:
+                        return
+                except Exception as e:
+                    error_msg = f"{str(e)}\n{traceback.format_exc()}"
+                    get_logger().error(
+                        f"Follow Action Failed: {error_msg}. Going to next..."
+                    )
 
             # Shutdown profile
             self.shutdown_profile(
@@ -424,8 +431,18 @@ class InstagramService:
             )
         except Exception as e:
             error_msg = f"{str(e)}\n{traceback.format_exc()}"
-            get_logger().error(f"Operation Failed: {error_msg}")
-            pass
+            get_logger().error(
+                f"Operation Failed: {error_msg}. Shutting down profile..."
+            )
+
+            # Shutdown profile
+            if selenium_instance is not None:
+                self.shutdown_profile(
+                    profile,
+                    selenium_instance,
+                    processed_targets,
+                    BotStatus.Done,
+                )
 
 
 instagram_service = InstagramService()
