@@ -292,8 +292,22 @@ class InstagramService:
                 profile.ads_power_id
             )
 
-            instagram_wrapper = InstagramWrapper(selenium_instance)
-            res = instagram_wrapper.follow_action(username)
+            # Run follow action
+            res = self.on_handle_status(
+                InstagramWrapper(selenium_instance).follow_action(
+                    username
+                ),
+                profile,
+                processed_targets,
+                username,
+            )
+
+            if res is False:
+                return
+
+        self.shutdown_profile(
+            profile, driver, processed_targets, BotStatus.Done
+        )
 
 
 instagram_service = InstagramService()
