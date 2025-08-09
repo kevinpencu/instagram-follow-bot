@@ -4,6 +4,7 @@ from app.insta_module.instagram_service import instagram_service
 from app.status_module.profile_status_manager import (
     profile_status_manager,
 )
+import traceback
 
 
 class MainApiController:
@@ -35,7 +36,7 @@ class MainApiController:
             return (
                 jsonify(
                     error="internal_error",
-                    message="Failed to fetch profiles",
+                    message=f"Failed to fetch profiles {str(e)} \n {traceback.format_exc()}",
                 ),
                 500,
             )
@@ -56,7 +57,7 @@ class MainApiController:
             return (
                 jsonify(
                     error="internal_error",
-                    message="Start All Failed",
+                    message=f"Start All Failed {str(e)} \n {traceback.format_exc}",
                 ),
                 500,
             )
@@ -72,7 +73,7 @@ class MainApiController:
             return (
                 jsonify(
                     error="internal_error",
-                    message="Start Selected Failed",
+                    message=f"Start Selected Failed {str(e)} \n {traceback.format_exc}",
                 ),
                 500,
             )
@@ -80,7 +81,16 @@ class MainApiController:
         return None
 
     def status(self):
-        return profile_status_manager.get_route_data()
+        try:
+            return profile_status_manager.get_route_data()
+        except Exception as e:
+            return (
+                jsonify(
+                    error="internal_error",
+                    message=f"Status Get Failed {str(e)} \n {traceback.format_exc}",
+                ),
+                500,
+            )
 
 
 main_api_controller = MainApiController()
