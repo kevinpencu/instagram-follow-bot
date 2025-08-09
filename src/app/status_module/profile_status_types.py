@@ -10,6 +10,7 @@ class BotStatus(str, Enum):
     Failed = "failed"
     SeleniumFailed = "seleniumFailed"
     AdsPowerStartFailed = "adsPowerFailed"
+    Retrying = "retrying"
     AccountLoggedOut = "accountLoggedOut"
     AccountIsSuspended = "accountSuspended"
     FollowBlocked = "followblocked"
