@@ -8,6 +8,7 @@ import { Badge } from "~/components/ui/badge";
 import { Play, PlayCircle, Settings, Loader2 } from "lucide-react";
 import { apiService, type Profile, type ProfileStatus } from "~/lib/api";
 import { WorkerInputModal } from "~/components/worker-input-modal";
+import { statusConfig } from "~/data/status-config";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -155,25 +156,6 @@ export default function Index() {
 
   const getStatusBadge = (status?: ProfileStatus) => {
     if (!status) return null;
-
-    const statusConfig = {
-      scheduled: { variant: 'secondary' as const, label: 'Scheduled', animate: true },
-      running: { variant: 'default' as const, label: 'Running', animate: true },
-      done: { variant: 'outline' as const, label: 'Done', animate: false },
-      failed: { variant: 'destructive' as const, label: 'Failed', animate: false },
-      seleniumFailed: { variant: 'destructive' as const, label: 'Selenium Failed', animate: false },
-      adsPowerFailed: { variant: 'destructive' as const, label: 'AdsPower Failed', animate: false },
-      followblocked: { variant: 'destructive' as const, label: 'Follow Blocked', animate: false },
-      accountLoggedOut: { variant: 'destructive' as const, label: 'Account Logged Out', animate: false },
-      badproxy: { variant: 'destructive' as const, label: 'Bad Proxy', animate: false },
-      accountSuspended: { variant: 'destructive' as const, label: 'Account Suspended', animate: false },
-      retrying: { variant: 'secondary' as const, label: 'Retrying', animate: true },
-      stopping: { variant: 'default' as const, label: 'Stopping', animate: true },
-      somethingwentwrong: { variant: 'destructive' as const, label: 'Something Went Wrong Checkpoint', animate: false },
-      accountcompromised: { variant: 'destructive' as const, label: 'Change Password/Compromised Checkpoint', animate: false },
-      banned: { variant: 'destructive' as const, label: 'Banned', animate: false },
-      notargets: { variant: 'secondary' as const, label: 'No Targets', animate: false },
-    };
 
     const config = statusConfig[status.bot_status];
     const animationClass = config.animate ? 'animate-pulse' : '';
