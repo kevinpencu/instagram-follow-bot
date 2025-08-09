@@ -198,6 +198,7 @@ class InstagramService:
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.AdsPowerStartFailed
             )
+            # Maybe run shutdown
             return None
 
         time.sleep(3)
@@ -213,6 +214,7 @@ class InstagramService:
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.SeleniumFailed
             )
+            # Maybe run shutdown
             return None
 
         profile_status_manager.set_total(
@@ -244,20 +246,20 @@ class InstagramService:
         if stats is None:
             return
 
-        if stats.is_ok():
-            profile_status_manager.mark_done(profile.ads_power_id)
-        else:
-            profile_status_manager.set_status(
-                profile.ads_power_id, status
-            )
+        profile_status_manager.set_status(profile.ads_power_id, status)
 
         try:
-            driver.quit()
+            if driver is not None:
+                driver.quit()
             adspower.stop_profile(profile.ads_power_id)
         except Exception as e:
             time.sleep(5)
             self.shutdown_profile(
-                profile, driver, processed_targets, status, shutdown_attempt_no + 1
+                profile,
+                driver,
+                processed_targets,
+                status,
+                shutdown_attempt_no + 1,
             )
 
     def on_retry(self, profile: Profile, attempt_no: int) -> bool:
