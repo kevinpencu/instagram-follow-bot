@@ -4,6 +4,7 @@ from app.insta.checkpoint_conditions import CONDITIONS
 from app.insta.checkpoint_bypass import BYPASSES
 from app.insta.actions import FOLLOW_ACTION
 from app.selenium_utils.utils import navigate_to
+from app.logger import get_logger
 
 
 class InstagramWrapper:
@@ -30,10 +31,19 @@ class InstagramWrapper:
         self.visit_user_page(target)
 
         cp = self.get_cp(True)
+        get_logger().info(
+            f"[INSTAWRAPPER, TARGET: {target}]: Processing Checkpoint: {cp}"
+        )
         if cp is not None:
             if self.bypass_cp(cp) is False:
+                get_logger().info(
+                    f"[INSTAWRAPPER, TARGET: {target}]: Bypass for {cp} failed"
+                )
                 return cp
 
+        get_logger().info(
+            f"[INSTAWRAPPER, TARGET: {target}]: Executing Follow Action..."
+        )
         FOLLOW_ACTION.run(self.driver)
 
         cp = self.get_cp()
