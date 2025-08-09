@@ -1,5 +1,4 @@
-from flask import jsonify, Flask, request
-from app.logger import get_logger
+from flask import Flask
 from flask_cors import CORS
 from app.server.errors import init_handler
 from app.server.api_controller import main_api_controller

@@ -1,5 +1,7 @@
 from app.airtable.models.profile import Profile
-from app.executor import executor, get_executor, delay_executor
+from app.executor import get_executor, delay_executor
+import traceback
+import time
 from app.airtable.enums.profile_status import AirtableProfileStatus
 from selenium import webdriver
 from app.insta.instagram_selenium import InstagramWrapper
@@ -10,6 +12,8 @@ from app.status_module.profile_status_manager import (
     profile_status_manager,
 )
 from app.adspower.api_wrapper import adspower
+from app.logger import get_logger
+from app.airtable.profile_repository import AirTableProfileRepository
 
 
 class InstagramService:
@@ -28,23 +32,52 @@ class InstagramService:
             Checkpoint.BadProxy: self.bad_proxy_handler,
         }
 
-    def on_attempt_delay(attempt_no: int = 0):
+    def on_attempt_delay(self, attempt_no: int = 0):
         attempts_delay_map = {1: 0, 2: 10, 3: 60, 4: 300}
         if attempt_no not in attempts_delay_map:
             return False
         time.sleep(attempts_delay_map[attempt_no])
 
+    def start_profiles(
+        self, profiles: list[Profile], max_workers: int = 4
+    ):
+        for profile in profiles:
+            profile_status_manager.schedule_profile(profile.ads_power_id)
+
+        profile_executor = get_executor(max_workers)
+
+        for profile in profiles:
+            get_logger().info(f"Starting profile: {profile.username}")
+            profile_executor.submit(self.run_single, profile, 0)
+            time.sleep(2)
+
     def start_all(self, max_workers: int = 4):
         pass
 
-    def start_selected(self, max_workers: int = 4):
-        pass
+    def start_selected(
+        self, ads_power_ids: list[str], max_workers: int = 4
+    ):
+        all_profiles = AirTableProfileRepository().get_profiles()
+        selected_profiles = [
+            profile
+            for profile in all_profiles
+            if profile.ads_power_id in ads_power_ids
+        ]
+
+        if len(selected_profiles) == 0:
+            return
+
+        self.start_profiles(selected_profiles, max_workers)
 
     def stop_all(self, max_workers: int = 4):
         pass
 
     def already_followed_or_requested_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
 
         profile_status_manager.increment_already_followed(
@@ -55,7 +88,11 @@ class InstagramService:
         return True
 
     def followed_or_requested_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
         profile_status_manager.increment_total_followed(
             profile.ads_power_id
@@ -65,7 +102,11 @@ class InstagramService:
         return True
 
     def page_unavailable_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
         profile_status_manager.increment_total_follow_failed(
             profile.ads_power_id
@@ -74,7 +115,11 @@ class InstagramService:
         return True
 
     def failed_follow_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
         profile_status_manager.increment_total_follow_failed(
             profile.ads_power_id
@@ -82,7 +127,11 @@ class InstagramService:
         return True
 
     def account_suspended_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
         self.shutdown_profile(
             profile,
@@ -93,7 +142,11 @@ class InstagramService:
         return False
 
     def account_banned_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
         self.shutdown_profile(
             profile, driver, processed_targets, BotStatus.Banned
@@ -101,7 +154,11 @@ class InstagramService:
         return False
 
     def follow_blocked_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
         profile.update_follow_limit_reached()
         self.shutdown_profile(
@@ -110,7 +167,11 @@ class InstagramService:
         return False
 
     def account_logged_out_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
         self.shutdown_profile(
             profile, driver, processed_targets, BotStatus.AccountLoggedOut
@@ -118,7 +179,11 @@ class InstagramService:
         return False
 
     def something_went_wrong_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
         self.shutdown_profile(
             profile,
@@ -126,10 +191,14 @@ class InstagramService:
             processed_targets,
             BotStatus.SomethingWentWrong,
         )
-        return Falsee
+        return False
 
     def account_compromised_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
         self.shutdown_profile(
             profile,
@@ -140,7 +209,11 @@ class InstagramService:
         profile.set_status(AirtableProfileStatus.ChangePasswordCheckpoint)
 
     def bad_proxy_handler(
-        self, profile: Profile, processed_targets: list[str], target: str
+        self,
+        profile: Profile,
+        driver: webdriver.Chrome,
+        processed_targets: list[str],
+        target: str,
     ) -> bool:
         self.shutdown_profile(
             profile,
@@ -155,25 +228,26 @@ class InstagramService:
         self,
         cp: Checkpoint,
         profile: Profile,
+        driver: webdriver.Chrome,
         processed_targets: list[str],
         target: str,
     ):
         if cp not in self._handlers:
             return True
 
-        return handlers[cp](profile, processed_targets, target)
+        return self._handlers[cp](profile, processed_targets, target)
 
     def prepare_profile(
         self, profile: Profile, attempt_no: int = 0
     ) -> webdriver.Chrome:
-        if profile_manager.should_stop(profile.ads_power_id):
-            profile_manager.set_status(
+        if profile_status_manager.should_stop(profile.ads_power_id):
+            profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.Done
             )
             return None
 
         if self.on_attempt_delay(attempt_no) is False:
-            profile_manager.set_status(
+            profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.Failed
             )
             return None
@@ -203,7 +277,7 @@ class InstagramService:
 
         time.sleep(3)
 
-        selenium_instance = run_selenium(start_profile_response)
+        selenium_instance = run_selenium(adspower_response)
         if (
             selenium_instance is None
             and self.on_retry(profile, attempt_no) is True
@@ -253,6 +327,9 @@ class InstagramService:
                 driver.quit()
             adspower.stop_profile(profile.ads_power_id)
         except Exception as e:
+            get_logger().error(
+                f"Shutdown for profile {profile.ads_power_id} failed, sleeping and executing retry no: [{shutdown_attempt_no + 1}]...\n{str(e)}"
+            )
             time.sleep(5)
             self.shutdown_profile(
                 profile,
@@ -274,40 +351,55 @@ class InstagramService:
         return True
 
     def run_single(self, profile: Profile, attempt_no: int = 0):
-        selenium_instance = self.prepare_profile(profile, attempt_no)
+        get_logger().info(f"Running Single: {profile.username}")
+        try:
+            selenium_instance = self.prepare_profile(profile, attempt_no)
 
-        if prepare_profile_response is None:
-            return
-
-        targets = profile.download_targets()
-        processed_targets = profile.download_processed_targets()
-
-        for username in targets:
-            # Check if stop action was initiated
-            if profile_status_manager.should_stop(profile.ads_power_id):
-                break
-
-            # Check if target is already processed
-            profile_status_manager.increment_already_followed(
-                profile.ads_power_id
-            )
-
-            # Run follow action
-            res = self.on_handle_status(
-                InstagramWrapper(selenium_instance).follow_action(
-                    username
-                ),
-                profile,
-                processed_targets,
-                username,
-            )
-
-            if res is False:
+            if selenium_instance is None:
+                get_logger().error(
+                    f"Preparation for {profile.username} failed."
+                )
                 return
 
-        self.shutdown_profile(
-            profile, driver, processed_targets, BotStatus.Done
-        )
+            targets = profile.download_targets()
+            processed_targets = profile.download_processed_targets()
+
+            for username in targets:
+                # Check if stop action was initiated
+                if profile_status_manager.should_stop(
+                    profile.ads_power_id
+                ):
+                    break
+
+                # Check if target is already processed
+                profile_status_manager.increment_already_followed(
+                    profile.ads_power_id
+                )
+
+                # Run follow action
+                res = self.on_handle_status(
+                    InstagramWrapper(selenium_instance).follow_action(
+                        username
+                    ),
+                    profile,
+                    selenium_instance,
+                    processed_targets,
+                    username,
+                )
+
+                if res is False:
+                    return
+
+            self.shutdown_profile(
+                profile,
+                selenium_instance,
+                processed_targets,
+                BotStatus.Done,
+            )
+        except Exception as e:
+            error_msg = f"{str(e)}\n{traceback.format_exc()}"
+            get_logger().error(f"Operation Failed: {error_msg}")
+            pass
 
 
 instagram_service = InstagramService()

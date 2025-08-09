@@ -1,9 +1,7 @@
 from app.insta.enums.checkpoint import Checkpoint
 from selenium.webdriver.common.by import By
 from selenium import webdriver
-from typing import Callable
 from dataclasses import dataclass
-import operator
 
 
 @dataclass

@@ -6,6 +6,7 @@ from app.airtable.helper import (
     download_and_parse_lines_from_url,
 )
 from app.airtable.enums.profile_status import AirtableProfileStatus
+from app.logger import get_logger
 
 DEFAULT_ATTACHMENT_FILE_NAME = "usernames.txt"
 TARGETS_FIELD_COLUMN = "Targets"
@@ -89,6 +90,8 @@ class Profile:
         )
 
     def download_targets(self) -> list[str]:
+        get_logger().info("[PROFILE]: Fetching targets")
+
         if len(self.cached_targets) > 0:
             return self.cached_targets
 
@@ -98,11 +101,15 @@ class Profile:
         return self.cached_targets
 
     def download_processed_targets(self) -> list[str]:
+        get_logger().info("[PROFILE]: Fetching Already Followed Targets")
+
         return download_and_parse_lines_from_url(
             self.processed_targets_download_urls
         )
 
     def download_followsus_targets(self) -> list[str]:
+        get_logger().info("[PROFILE]: Fetching Follows Us Targets")
+
         return download_and_parse_lines_from_url(
             self.followsus_targets_download_urls
         )

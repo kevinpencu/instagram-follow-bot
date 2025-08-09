@@ -48,7 +48,8 @@ class MainApiController:
         try:
             instagram_service.stop_all()
         except Exception as e:
-            # Log Stop All Failed
+            error_msg = f"\n{str(e)} \n {traceback.format_exc()}"
+            get_logger().error(f"Stop All Failed{error_msg}")
             pass
 
         return None
