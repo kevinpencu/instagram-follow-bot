@@ -332,7 +332,11 @@ class InstagramService:
         status: BotStatus,
         shutdown_attempt_no: int = 0,
     ):
+        get_logger().info(f"Shutting down profile {profile.username}...")
         if shutdown_attempt_no >= 3:
+            get_logger().info(
+                f"Aborting shutdown for down profile {profile.username}..."
+            )
             return
 
         if shutdown_attempt_no == 0:
@@ -342,13 +346,22 @@ class InstagramService:
             profile.ads_power_id
         )
         if stats is None:
+            get_logger().info(
+                f"Shutdown for profile {profile.username}... Failed. No Status Present"
+            )
             return
 
         profile_status_manager.set_status(profile.ads_power_id, status)
 
         try:
             if driver is not None:
+                get_logger().info(
+                    f"Shutting down selenium for profile {profile.username}"
+                )
                 driver.quit()
+            get_logger().info(
+                f"Shutting down AdsPower Profile for profile {profile.username}"
+            )
             adspower.stop_profile(profile.ads_power_id)
         except Exception as e:
             get_logger().error(
