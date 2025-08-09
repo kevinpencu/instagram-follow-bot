@@ -43,6 +43,12 @@ class CheckpointCondition:
 
 
 CONDITIONS = {
+    Checkpoint.AccountLoggedOut: CheckpointCondition(
+        checkpoint=Checkpoint.AccountLoggedOut,
+        xpath_item_len=0,
+        xpath_query="//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
+        cond_operator=operator.gt,
+    ),
     Checkpoint.AccountSuspended: CheckpointCondition(
         checkpoint=Checkpoint.AccountSuspended,
         condition_url="/accounts/suspended",
@@ -83,12 +89,6 @@ CONDITIONS = {
         xpath_item_len=2,
         xpath_query="//h3[text()='Your Account Was Compromised'] | //div[text()='Change Password']",
         cond_operator=operator.eq,
-    ),
-    Checkpoint.AccountLoggedOut: CheckpointCondition(
-        checkpoint=Checkpoint.AccountLoggedOut,
-        xpath_item_len=0,
-        xpath_query="//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
-        cond_operator=operator.gt,
     ),
     Checkpoint.PageUnavailable: CheckpointCondition(
         checkpoint=Checkpoint.PageUnavailable,
