@@ -247,7 +247,9 @@ class InstagramService:
     ) -> webdriver.Chrome:
         profile_status_manager.init_profile(profile)
 
-        get_logger().info(f"Running delay for profile: {profile.username}")
+        get_logger().info(
+            f"Running delay for profile: {profile.username}"
+        )
         if self.on_attempt_delay(attempt_no) is False:
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.Failed
@@ -261,7 +263,9 @@ class InstagramService:
             )
             return None
 
-        get_logger().info(f"Starting AdsPower For profile: {profile.username}")
+        get_logger().info(
+            f"Starting AdsPower For profile: {profile.username}"
+        )
         adspower_response = adspower.start_profile(profile.ads_power_id)
         if (
             adspower_response is None
@@ -276,10 +280,14 @@ class InstagramService:
             # Maybe run shutdown
             return None
 
-        get_logger().info(f"Waiting before starting selenium for profile: {profile.username}")
+        get_logger().info(
+            f"Waiting before starting selenium for profile: {profile.username}"
+        )
         time.sleep(7.5)
 
-        get_logger().info(f"Starting Selenium For profile: {profile.username}")
+        get_logger().info(
+            f"Starting Selenium For profile: {profile.username}"
+        )
         selenium_instance = run_selenium(adspower_response)
         if (
             selenium_instance is None
