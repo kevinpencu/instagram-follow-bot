@@ -2,7 +2,6 @@ from app.insta.enums.checkpoint import Checkpoint
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from typing import Callable
-from app.insta.checkpoint_bypass import BYPASSES
 from dataclasses import dataclass
 import operator
 
@@ -14,7 +13,6 @@ class CheckpointCondition:
     xpath_query: str = ""
     xpath_item_len: int = 0
     cond_operator: Callable[[int, int], bool] = None
-    should_bypass: bool = False
     before_action_checkpoint: Checkpoint = None
 
     def is_active(self, driver: webdriver.Chrome):
@@ -22,9 +20,6 @@ class CheckpointCondition:
             len(self.condition_url) > 0
             and self.condition_url in driver.current_url
         ):
-            if self.should_bypass is False:
-                return True
-            BYPASSES[self.checkpoint].do_bypass(driver)
             return True
 
         if len(self.xpath_query) <= 0:
@@ -62,7 +57,6 @@ CONDITIONS = {
         xpath_item_len=0,
         xpath_query="//*[text()='We suspect automated behavior on your account']",
         cond_operator=operator.gt,
-        should_bypass=True,
     ),
     Checkpoint.BadProxy: CheckpointCondition(
         checkpoint=Checkpoint.BadProxy,
@@ -75,14 +69,12 @@ CONDITIONS = {
         xpath_item_len=0,
         xpath_query="//*[text()='Save info']",
         cond_operator=operator.gt,
-        should_bypass=True,
     ),
     Checkpoint.SomethingWentWrongCheckpoint: CheckpointCondition(
         checkpoint=Checkpoint.SomethingWentWrongCheckpoint,
         xpath_item_len=2,
         xpath_query="//h3[text()='Something went wrong'] | //div[text()='Reload page']",
         cond_operator=operator.eq,
-        should_bypass=True,
     ),
     Checkpoint.AccountCompromised: CheckpointCondition(
         checkpoint=Checkpoint.AccountCompromised,
