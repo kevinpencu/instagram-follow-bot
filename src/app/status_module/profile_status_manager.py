@@ -68,6 +68,16 @@ class ProfileStatusManager:
     @thread_safe
     def stop_all(self):
         for ads_power_id in self._profile_stats.active_profiles.keys():
+            current_status = self._profile_stats.active_profiles[
+                ads_power_id
+            ].bot_status
+            if (
+                current_status is BotStatus.Stopping
+                or current_status is BotStatus.Failed
+                or current_status is BotStatus.Done
+            ):
+                continue
+
             self._profile_stats.set_status(
                 ads_power_id, BotStatus.Stopping
             )
