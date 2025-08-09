@@ -1,4 +1,5 @@
 import threading
+from app.airtable.models.profile import Profile
 from app.status_module.profile_status_types import (
     ProfileStatusContext,
     ActiveProfileStats,
@@ -26,10 +27,10 @@ class ProfileStatusManager:
         pass
 
     @thread_safe
-    def init_profile(
-        self, username: str, ads_power_id: str, status: BotStatus
-    ) -> ActiveProfileStats:
-        self._profile_stats.init_profile(username, ads_power_id, status)
+    def init_profile(self, profile: Profile) -> ActiveProfileStats:
+        self._profile_stats.init_profile(
+            profile.username, profile.ads_power_id, BotStatus.Pending
+        )
         self._profile_stats.unschedule(ads_power_id)
 
     @thread_safe
@@ -44,6 +45,14 @@ class ProfileStatusManager:
     @thread_safe
     def set_status(self, ads_power_id: str, status: BotStatus):
         self._profile_stats.set_status(ads_power_id, status)
+
+    @thread_safe
+    def mark_done(self, ads_power_id: str):
+        self._profile_stats.set_status(ads_power_id, BotStatus.Done)
+
+    @thread_safe
+    def mark_failed(self, ads_power_id: str):
+        self._profile_stats.set_status(ads_power_id, BotStatus.Failed)
 
     @thread_safe
     def set_total(self, ads_power_id: str, total: int):
