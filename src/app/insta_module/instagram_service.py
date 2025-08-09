@@ -387,9 +387,11 @@ class InstagramService:
                     break
 
                 # Check if target is already processed
-                profile_status_manager.increment_already_followed(
-                    profile.ads_power_id
-                )
+                if username in processed_targets:
+                    profile_status_manager.increment_already_followed(
+                        profile.ads_power_id
+                    )
+                    continue
 
                 # Run follow action
                 res = self.on_handle_status(
