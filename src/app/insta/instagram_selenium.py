@@ -12,10 +12,10 @@ class InstagramWrapper:
     def __init__(self, driver: webdriver.Chrome):
         self.driver = driver
 
-    def get_cp(self) -> Checkpoint:
+    def get_cp(self, before_action: bool = False) -> Checkpoint:
         for cond in CONDITIONS.keys():
             if CONDITIONS[cond].is_active(self.driver):
-                return cond
+                return CONDITIONS[cond].get_cp(before_action)
         return None
 
     def bypass_cp(self, cp: Checkpoint) -> bool:
@@ -29,7 +29,7 @@ class InstagramWrapper:
     def follow_action(self, target: str) -> Checkpoint:
         self.visit_user_page(target)
 
-        cp = self.get_cp()
+        cp = self.get_cp(True)
         if cp is not None:
             if self.bypass_cp(cp) is False:
                 return cp

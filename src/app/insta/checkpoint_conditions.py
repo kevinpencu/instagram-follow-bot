@@ -2,6 +2,7 @@ from app.insta.enums.checkpoint import Checkpoint
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from typing import Callable
+from app.insta.checkpoint_bypass import BYPASSES
 from dataclasses import dataclass
 import operator
 
@@ -14,12 +15,16 @@ class CheckpointCondition:
     xpath_item_len: int = 0
     cond_operator: Callable[[int, int], bool] = None
     should_bypass: bool = False
+    before_action_checkpoint: Checkpoint = None
 
     def is_active(self, driver: webdriver.Chrome):
         if (
             len(self.condition_url) > 0
             and self.condition_url in driver.current_url
         ):
+            if self.should_bypass is False:
+                return True
+            BYPASSES[self.checkpoint].do_bypass(driver)
             return True
 
         if len(self.xpath_query) <= 0:
@@ -29,6 +34,12 @@ class CheckpointCondition:
             len(driver.find_elements(By.XPATH, self.xpath_query)),
             self.xpath_item_len,
         )
+
+    def get_cp(self, before_action: bool = False):
+        if before_action is True:
+            return self.before_action_checkpoint
+
+        return self.checkpoint
 
 
 CONDITIONS = {
@@ -45,6 +56,7 @@ CONDITIONS = {
         xpath_item_len=0,
         xpath_query="//*[text()='We suspect automated behavior on your account']",
         cond_operator=operator.gt,
+        should_bypass=True,
     ),
     Checkpoint.BadProxy: CheckpointCondition(
         checkpoint=Checkpoint.BadProxy,
@@ -57,12 +69,14 @@ CONDITIONS = {
         xpath_item_len=0,
         xpath_query="//*[text()='Save info']",
         cond_operator=operator.gt,
+        should_bypass=True,
     ),
     Checkpoint.SomethingWentWrongCheckpoint: CheckpointCondition(
         checkpoint=Checkpoint.SomethingWentWrongCheckpoint,
         xpath_item_len=2,
         xpath_query="//h3[text()='Something went wrong'] | //div[text()='Reload page']",
         cond_operator=operator.eq,
+        should_bypass=True,
     ),
     Checkpoint.AccountCompromised: CheckpointCondition(
         checkpoint=Checkpoint.AccountCompromised,
@@ -76,16 +90,17 @@ CONDITIONS = {
         xpath_query="//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
         cond_operator=operator.gt,
     ),
-    Checkpoint.PageFollowedOrRequested: CheckpointCondition(
-        checkpoint=Checkpoint.PageFollowedOrRequested,
-        xpath_item_len=0,
-        xpath_query="//div[text()='Following'] | //div[text()='Requested']",
-        cond_operator=operator.gt,
-    ),
     Checkpoint.PageUnavailable: CheckpointCondition(
         checkpoint=Checkpoint.PageUnavailable,
         xpath_item_len=0,
         xpath_query='//*[text()="Sorry, this page isn\'t available."]',
+        cond_operator=operator.gt,
+    ),
+    Checkpoint.PageFollowedOrRequested: CheckpointCondition(
+        before_action_checkpoint=Checkpoint.AlreadyFollowedOrRequested,
+        checkpoint=Checkpoint.PageFollowedOrRequested,
+        xpath_item_len=0,
+        xpath_query="//div[text()='Following'] | //div[text()='Requested']",
         cond_operator=operator.gt,
     ),
 }
