@@ -43,6 +43,7 @@ def start_selected():
 
 @app.route("/status")
 def status():
-    return main_api_controller.status()()
+    return main_api_controller.status()
+
 
 srv_app = app
