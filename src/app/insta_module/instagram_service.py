@@ -242,11 +242,9 @@ class InstagramService:
     def prepare_profile(
         self, profile: Profile, attempt_no: int = 1
     ) -> webdriver.Chrome:
-        get_logger().info("We're here one.")
         profile_status_manager.init_profile(profile)
 
         if self.on_attempt_delay(attempt_no) is False:
-            get_logger().info("We're here two.")
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.Failed
             )
@@ -254,13 +252,10 @@ class InstagramService:
 
         usernames = profile.download_targets()
         if len(usernames) <= 0:
-            get_logger().info("We're here three.")
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.NoTargets
             )
             return None
-
-        get_logger().info("We're here four.")
 
         adspower_response = adspower.start_profile(profile.ads_power_id)
         if (
