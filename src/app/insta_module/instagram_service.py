@@ -152,15 +152,31 @@ class InstagramService:
             return None
 
         adspower_response = adspower.start_profile(profile.ads_power_id)
+        if (
+            adspower_response is None
+            and self.on_retry(profile, attempt_no) is True
+        ):
+            return None
+
         if adspower_response is None:
-            self.on_retry(profile)
+            profile_status_manager.set_status(
+                profile.ads_power_id, BotStatus.AdsPowerStartFailed
+            )
             return None
 
         time.sleep(3)
 
         selenium_instance = run_selenium(start_profile_response)
+        if (
+            selenium_instance is None
+            and self.on_retry(profile, attempt_no) is True
+        ):
+            return None
+
         if selenium_instance is None:
-            self.on_retry(profile)
+            profile_status_manager.set_status(
+                profile.ads_power_id, BotStatus.SeleniumFailed
+            )
             return None
 
         profile_status_manager.set_total(
@@ -208,11 +224,16 @@ class InstagramService:
                 profile, driver, processed_targets, status, attempt_no + 1
             )
 
-    def on_retry(self, profile: Profile, attempt_no):
+    def on_retry(self, profile: Profile, attempt_no: int) -> bool:
+        if attempt_no > 4:
+            return False
+
         profile_status_manager.set_status(
             profile.ads_power_id, BotStatus.Retrying
         )
         delay_executor.submit(self.run_single, profile, attempt_no)
+
+        return True
 
     def run_single(self, profile: Profile, attempt_no: int = 0):
         selenium_instance = self.prepare_profile(profile, attempt_no)
