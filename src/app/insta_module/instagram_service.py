@@ -84,7 +84,8 @@ class InstagramService:
         profile_status_manager.increment_already_followed(
             profile.ads_power_id
         )
-        processed_targets.append(target)
+        if target not in processed_targets:
+            processed_targets.append(target)
 
         return True
 
@@ -233,6 +234,7 @@ class InstagramService:
         processed_targets: list[str],
         target: str,
     ):
+        get_logger().info(f"Processing {cp} checkpoint")
         if cp not in self._handlers:
             return True
 
@@ -245,6 +247,7 @@ class InstagramService:
     ) -> webdriver.Chrome:
         profile_status_manager.init_profile(profile)
 
+        get_logger().info(f"Running delay for profile: {profile.username}")
         if self.on_attempt_delay(attempt_no) is False:
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.Failed
@@ -258,6 +261,7 @@ class InstagramService:
             )
             return None
 
+        get_logger().info(f"Starting AdsPower For profile: {profile.username}")
         adspower_response = adspower.start_profile(profile.ads_power_id)
         if (
             adspower_response is None
@@ -272,8 +276,10 @@ class InstagramService:
             # Maybe run shutdown
             return None
 
-        time.sleep(3)
+        get_logger().info(f"Waiting before starting selenium for profile: {profile.username}")
+        time.sleep(7.5)
 
+        get_logger().info(f"Starting Selenium For profile: {profile.username}")
         selenium_instance = run_selenium(adspower_response)
         if (
             selenium_instance is None

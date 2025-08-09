@@ -90,7 +90,9 @@ class Profile:
         )
 
     def download_targets(self) -> list[str]:
-        get_logger().info("[PROFILE]: Fetching targets")
+        get_logger().info(
+            f"[PROFILE]: Fetching targets for profile {self.username}"
+        )
 
         if len(self.cached_targets) > 0:
             return self.cached_targets
