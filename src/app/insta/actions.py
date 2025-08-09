@@ -2,6 +2,7 @@ import time
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from dataclasses import dataclass
+from app.logger import get_logger
 
 
 @dataclass
@@ -14,8 +15,13 @@ class Action:
         if len(elems) <= 0:
             return False
 
-        elems[0].click()
-        time.sleep(self.sleep)
+        try:
+            elems[0].click()
+            time.sleep(self.sleep)
+            return True
+        except Exception as e:
+            get_logger().error(f"Failed to run click: {str(e)}")
+
 
         return True
 
