@@ -1,7 +1,7 @@
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from app.selenium_utils import close_tabs
+from app.selenium_utils.utils import close_tabs
 from app.adspower.api_wrapper import StartProfileResponse
 from app.logger import get_logger
 
@@ -26,4 +26,4 @@ def run_selenium(
         get_logger().error(
             f"[ADSPOWER-SELENIUM]: Failed to create WebDriver: {str(e)}"
         )
-        raise
+    return None
