@@ -3,7 +3,7 @@ from app.insta.enums.checkpoint import Checkpoint
 from app.insta.checkpoint_conditions import CONDITIONS
 from app.insta.checkpoint_bypass import BYPASSES
 from app.insta.actions import FOLLOW_ACTION
-from app.selenium_utils import navigate_to, wait_page_loaded
+from app.selenium_utils.utils import navigate_to, wait_page_loaded
 
 
 class InstagramWrapper:

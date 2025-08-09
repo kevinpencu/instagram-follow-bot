@@ -1,4 +1,5 @@
 from app.insta.enums.checkpoint import Checkpoint
+from selenium import webdriver
 from typing import Callable
 from dataclasses import dataclass
 import operator
@@ -80,8 +81,8 @@ CONDITIONS = {
         xpath_query="//div[text()='Following'] | //div[text()='Requested']",
         cond_operator=operator.gt,
     ),
-    Checkpoint.PageUnavailble: CheckpointCondition(
-        checkpoint=Checkpoint.PageUnavailble,
+    Checkpoint.PageUnavailable: CheckpointCondition(
+        checkpoint=Checkpoint.PageUnavailable,
         xpath_item_len=0,
         xpath_query="Sorry, this page isn't available.",
         cond_operator=operator.gt,
