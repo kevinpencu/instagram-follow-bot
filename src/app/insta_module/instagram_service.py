@@ -14,7 +14,7 @@ class InstagramService:
     def __init__(self):
         pass
 
-    def check_attempt_delay(attempt_no: int = 0):
+    def on_attempt_delay(attempt_no: int = 0):
         attempts_delay_map = {1: 0, 2: 10, 3: 60, 4: 300}
         if attempt_no not in attempts_delay_map:
             return False
@@ -128,7 +128,7 @@ class InstagramService:
             profile_manager.mark_as_done(profile.ads_power_id)
             return None
 
-        if self.check_attempt_delay(attempt_no) is False:
+        if self.on_attempt_delay(attempt_no) is False:
             profile_status_manager.mark_failed(profile.ads_power_id)
             return None
 
