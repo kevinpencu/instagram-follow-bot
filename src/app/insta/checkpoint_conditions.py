@@ -31,7 +31,7 @@ class CheckpointCondition:
         )
 
     def get_cp(self, before_action: bool = False):
-        if before_action is True:
+        if before_action is True and self.before_action_checkpoint is not None:
             return self.before_action_checkpoint
 
         return self.checkpoint
