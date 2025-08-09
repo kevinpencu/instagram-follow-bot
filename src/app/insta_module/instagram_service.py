@@ -69,7 +69,8 @@ class InstagramService:
 
         self.start_profiles(selected_profiles, max_workers)
 
-    def stop_all(self, max_workers: int = 4):
+    def stop_all(self):
+        profile_status_manager.stop_all()
         pass
 
     def already_followed_or_requested_handler(
