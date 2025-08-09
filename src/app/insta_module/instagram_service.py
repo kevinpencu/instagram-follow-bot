@@ -312,7 +312,16 @@ class InstagramService:
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.SeleniumFailed
             )
-            # Maybe run shutdown
+            try:
+                # Shutdown adspower profile
+                get_logger().error(
+                    f"Shutting down AdsPower Profile for Failed Selenium {profile.username}"
+                )
+                adspower.stop_profile(profile.ads_power_id)
+            except Exception as e:
+                get_logger().error(
+                    f"Failed to shutdown AdsPower Profile for Failed Selenium Start {profile.username}"
+                )
             return None
 
         profile_status_manager.set_total(
