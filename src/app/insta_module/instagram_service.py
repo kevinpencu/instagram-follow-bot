@@ -51,18 +51,22 @@ class InstagramService:
             profile_executor.submit(self.run_single, profile, 1)
             time.sleep(2)
 
-    def start_all(self, max_workers: int = 4):
-        pass
-
     def do_start_selected(
         self, selected_profiles: list[Profile], max_workers: int = 4
     ):
         self.start_profiles(selected_profiles, max_workers)
 
+    def start_all(self, max_workers: int = 4):
+        executor.submit(
+            self.do_start_selected,
+            AirTableProfileRepository.get_profiles(),
+            max_workers,
+        )
+
     def start_selected(
         self, ads_power_ids: list[str], max_workers: int = 4
     ):
-        all_profiles = AirTableProfileRepository().get_profiles()
+        all_profiles = AirTableProfileRepository.get_profiles()
         selected_profiles = [
             profile
             for profile in all_profiles
