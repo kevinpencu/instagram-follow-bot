@@ -25,23 +25,27 @@ class Profile:
     processed_targets_download_urls: list[str]
     followsus_targets_download_urls: list[str]
     reached_follow_limit_date: str
+    cached_targets: list[str]
 
     @staticmethod
     def from_dict(x: dict):
         return Profile(
-            x["id"],
-            x["fields"][ADSPOWER_ID_COLUMN],
-            x["fields"][USERNAME_COLUMN],
-            map_attachment_field_to_urls(
+            airtable_id=x["id"],
+            ads_power_id=x["fields"][ADSPOWER_ID_COLUMN],
+            username=x["fields"][USERNAME_COLUMN],
+            target_download_urls=map_attachment_field_to_urls(
                 x["fields"][TARGETS_FIELD_COLUMN]
             ),
-            map_attachment_field_to_urls(
+            processed_targets_download_urls=map_attachment_field_to_urls(
                 x["fields"].get(ALREADY_FOLLOWED_COLUMN)
             ),
-            map_attachment_field_to_urls(
+            followsus_targets_download_urls=map_attachment_field_to_urls(
                 x["fields"].get(FOLLOWS_US_COLUMN)
             ),
-            x["fields"].get(REACHED_FOLLOW_LIMIT),
+            reached_follow_limit_date=x["fields"].get(
+                REACHED_FOLLOW_LIMIT
+            ),
+            cached_targets=[]
         )
 
     def update_usernames(self, usernames: list[str], field_column: str):
@@ -85,9 +89,13 @@ class Profile:
         )
 
     def download_targets(self) -> list[str]:
-        return download_and_parse_lines_from_url(
+        if len(self.cached_targets) > 0:
+            return self.cached_targets
+
+        self.cached_targets = download_and_parse_lines_from_url(
             self.target_download_urls
         )
+        return self.cached_targets
 
     def download_processed_targets(self) -> list[str]:
         return download_and_parse_lines_from_url(
