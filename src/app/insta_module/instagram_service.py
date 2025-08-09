@@ -116,23 +116,34 @@ class InstagramService:
     def bad_proxy_handler(
         self, profile: Profile, processed_targets: list[str], target: str
     ):
-        pass
+        self.shutdown_profile(
+            profile,
+            driver,
+            processed_targets,
+            BotStatus.BadProxy,
+        )
+        profile.set_status(AirtableProfileStatus.BadProxy)
 
     def on_handle_status(self):
         pass
 
     def prepare_profile(
         self, profile: Profile, attempt_no: int = 0
-    ) -> int:
+    ) -> webdriver.Chrome:
         if profile_manager.should_stop(profile.ads_power_id):
-            profile_manager.set_status(profile.ads_power_id, BotStatus.Done)
+            profile_manager.set_status(
+                profile.ads_power_id, BotStatus.Done
+            )
             return None
 
         if self.on_attempt_delay(attempt_no) is False:
-            profile_manager.set_status(profile.ads_power_id, BotStatus.Failed)
+            profile_manager.set_status(
+                profile.ads_power_id, BotStatus.Failed
+            )
             return None
 
         profile_status_manager.init_profile(profile)
+
         usernames = profile.download_targets()
         if len(usernames) <= 0:
             profile_status_manager.set_status(

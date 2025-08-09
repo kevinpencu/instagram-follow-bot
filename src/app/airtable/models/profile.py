@@ -45,7 +45,7 @@ class Profile:
             reached_follow_limit_date=x["fields"].get(
                 REACHED_FOLLOW_LIMIT
             ),
-            cached_targets=[]
+            cached_targets=[],
         )
 
     def update_usernames(self, usernames: list[str], field_column: str):
