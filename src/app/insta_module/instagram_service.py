@@ -160,6 +160,7 @@ class InstagramService:
         self.shutdown_profile(
             profile, driver, processed_targets, BotStatus.Banned
         )
+        profile.set_status(AirtableProfileStatus.Banned)
         return False
 
     def follow_blocked_handler(
@@ -185,6 +186,7 @@ class InstagramService:
         self.shutdown_profile(
             profile, driver, processed_targets, BotStatus.AccountLoggedOut
         )
+        profile.set_status(AirtableProfileStatus.LoggedOut)
         return False
 
     def something_went_wrong_handler(
@@ -386,6 +388,7 @@ class InstagramService:
 
             targets = profile.download_targets()
             processed_targets = profile.download_processed_targets()
+            logged_in = False
 
             for username in targets:
                 # Check if stop action was initiated
@@ -416,6 +419,11 @@ class InstagramService:
                     # This means that the profile has been shut down
                     if res is False:
                         return
+
+                    if not logged_in:
+                        logged_in = True
+                        profile.set_status(AirtableProfileStatus.LoggedIn)
+
                 except Exception as e:
                     error_msg = f"{str(e)}\n{traceback.format_exc()}"
                     get_logger().error(
