@@ -14,6 +14,7 @@ from app.status_module.profile_status_manager import (
 from app.adspower.api_wrapper import adspower
 from app.logger import get_logger
 from app.airtable.profile_repository import AirTableProfileRepository
+from app.insta_module.delay_logic import delay_for_attempt
 
 
 class InstagramService:
@@ -31,12 +32,6 @@ class InstagramService:
             Checkpoint.AccountCompromised: self.account_compromised_handler,
             Checkpoint.BadProxy: self.bad_proxy_handler,
         }
-
-    def on_attempt_delay(self, attempt_no: int = 1):
-        attempts_delay_map = {0: 0, 1: 0, 2: 10, 3: 60, 4: 300}
-        if attempt_no not in attempts_delay_map:
-            return False
-        time.sleep(attempts_delay_map[attempt_no])
 
     def start_profiles(
         self, profiles: list[Profile], max_workers: int = 4
@@ -265,7 +260,7 @@ class InstagramService:
             f"Running delay for profile: {profile.username}"
         )
 
-        if self.on_attempt_delay(attempt_no) is False:
+        if delay_for_attempt(attempt_no) is False:
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.MaxRetries
             )
@@ -388,7 +383,7 @@ class InstagramService:
             )
 
     def on_retry(self, profile: Profile, attempt_no: int) -> bool:
-        if self.on_attempt_delay(attempt_no) is False:
+        if delay_for_attempt(attempt_no) is False:
             return False
 
         get_logger().error(
