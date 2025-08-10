@@ -14,7 +14,7 @@ from app.status_module.profile_status_manager import (
 from app.adspower.api_wrapper import adspower
 from app.logger import get_logger
 from app.airtable.profile_repository import AirTableProfileRepository
-from app.instagram.delay_logic import delay_for_attempt
+from app.instagram.utils import delay_for_attempt
 from app.constants import DEFAULT_WORKERS, SELENIUM_STARTUP_DELAY, PROFILE_START_DELAY, MAX_SHUTDOWN_ATTEMPTS, SHUTDOWN_RETRY_DELAY
 
 

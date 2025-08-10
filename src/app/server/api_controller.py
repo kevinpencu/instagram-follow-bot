@@ -50,7 +50,6 @@ class MainApiController:
         except Exception as e:
             error_msg = f"\n{str(e)} \n {traceback.format_exc()}"
             get_logger().error(f"Stop All Failed{error_msg}")
-            pass
 
         return None
 
