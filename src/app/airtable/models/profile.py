@@ -6,7 +6,7 @@ from app.airtable.helper import (
     download_and_parse_lines_from_url,
 )
 from app.airtable.enums.profile_status import AirtableProfileStatus
-from app.logger import get_logger
+from app.core.logger import get_logger
 
 DEFAULT_ATTACHMENT_FILE_NAME = "usernames.txt"
 TARGETS_FIELD_COLUMN = "Targets"

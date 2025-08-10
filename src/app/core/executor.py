@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from app.constants import DEFAULT_WORKERS, DELAY_EXECUTOR_WORKERS
+from app.core.constants import DEFAULT_WORKERS, DELAY_EXECUTOR_WORKERS
 
 
 def get_executor(max_workers=DEFAULT_WORKERS):

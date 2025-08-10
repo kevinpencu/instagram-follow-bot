@@ -1,10 +1,10 @@
 from flask import jsonify, request
 from app.airtable.profile_repository import AirTableProfileRepository
 from app.instagram.instagram_service import instagram_service
-from app.status_module.profile_status_manager import (
+from app.status.profile_status_manager import (
     profile_status_manager,
 )
-from app.logger import get_logger
+from app.core.logger import get_logger
 import traceback
 
 

@@ -1,21 +1,21 @@
 from app.airtable.models.profile import Profile
-from app.executor import get_executor, delay_executor, executor
+from app.core.executor import get_executor, delay_executor, executor
 import traceback
 import time
 from app.airtable.enums.profile_status import AirtableProfileStatus
 from selenium import webdriver
 from app.instagram.instagram_selenium import InstagramWrapper
-from app.status_module.profile_status_types import BotStatus
+from app.status.profile_status_types import BotStatus
 from app.instagram.enums.checkpoint import Checkpoint
 from app.selenium_utils.adspower_selenium import run_selenium
-from app.status_module.profile_status_manager import (
+from app.status.profile_status_manager import (
     profile_status_manager,
 )
 from app.adspower.api_wrapper import adspower
-from app.logger import get_logger
+from app.core.logger import get_logger
 from app.airtable.profile_repository import AirTableProfileRepository
 from app.instagram.utils import delay_for_attempt
-from app.constants import DEFAULT_WORKERS, SELENIUM_STARTUP_DELAY, PROFILE_START_DELAY, MAX_SHUTDOWN_ATTEMPTS, SHUTDOWN_RETRY_DELAY
+from app.core.constants import DEFAULT_WORKERS, SELENIUM_STARTUP_DELAY, PROFILE_START_DELAY, MAX_SHUTDOWN_ATTEMPTS, SHUTDOWN_RETRY_DELAY
 
 
 class InstagramService:

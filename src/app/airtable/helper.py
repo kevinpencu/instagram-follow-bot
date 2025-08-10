@@ -1,4 +1,4 @@
-from app.config import get_cfg
+from app.core.config import get_cfg
 import requests
 from pyairtable import Api
 

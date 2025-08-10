@@ -4,7 +4,7 @@ from app.instagram.checkpoint_conditions import CONDITIONS
 from app.instagram.checkpoint_bypass import BYPASSES
 from app.instagram.actions import FOLLOW_ACTION
 from app.selenium_utils.utils import navigate_to
-from app.logger import get_logger
+from app.core.logger import get_logger
 
 
 class InstagramWrapper:

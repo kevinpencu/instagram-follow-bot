@@ -1,6 +1,6 @@
 import threading
 from app.airtable.models.profile import Profile
-from app.status_module.profile_status_types import (
+from app.status.profile_status_types import (
     ProfileStatusContext,
     ActiveProfileStats,
     BotStatus,

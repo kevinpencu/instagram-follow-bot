@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 import time
-from app.constants import SELENIUM_WAIT_DELAY
+from app.core.constants import SELENIUM_WAIT_DELAY
 
 
 def close_tabs(driver: webdriver.Chrome):

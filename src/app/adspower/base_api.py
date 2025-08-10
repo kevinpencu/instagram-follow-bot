@@ -1,6 +1,6 @@
 import requests as re
-from app.logger import get_logger
-from app.constants import ADSPOWER_REQUEST_TIMEOUT
+from app.core.logger import get_logger
+from app.core.constants import ADSPOWER_REQUEST_TIMEOUT
 
 
 class BaseApi:

@@ -8,7 +8,7 @@ from app.airtable.models.profile import (
     REACHED_FOLLOW_LIMIT,
 )
 from app.airtable.helper import get_table, config
-from app.logger import get_logger
+from app.core.logger import get_logger
 
 ALL_FIELDS = [
     TARGETS_FIELD_COLUMN,

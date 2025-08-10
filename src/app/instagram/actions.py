@@ -2,8 +2,8 @@ import time
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from dataclasses import dataclass
-from app.logger import get_logger
-from app.constants import FOLLOW_ACTION_DELAY
+from app.core.logger import get_logger
+from app.core.constants import FOLLOW_ACTION_DELAY
 
 
 @dataclass

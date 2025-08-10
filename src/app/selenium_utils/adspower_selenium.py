@@ -3,7 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from app.selenium_utils.utils import close_tabs
 from app.adspower.api_wrapper import StartProfileResponse
-from app.logger import get_logger
+from app.core.logger import get_logger
 
 
 def run_selenium(
