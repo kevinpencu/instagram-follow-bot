@@ -15,7 +15,13 @@ from app.adspower.api_wrapper import adspower
 from app.core.logger import get_logger
 from app.airtable.profile_repository import AirTableProfileRepository
 from app.instagram.utils import delay_for_attempt
-from app.core.constants import DEFAULT_WORKERS, SELENIUM_STARTUP_DELAY, PROFILE_START_DELAY, MAX_SHUTDOWN_ATTEMPTS, SHUTDOWN_RETRY_DELAY
+from app.core.constants import (
+    DEFAULT_WORKERS,
+    SELENIUM_STARTUP_DELAY,
+    PROFILE_START_DELAY,
+    MAX_SHUTDOWN_ATTEMPTS,
+    SHUTDOWN_RETRY_DELAY,
+)
 
 
 class InstagramService:
@@ -72,7 +78,9 @@ class InstagramService:
         )
 
     def do_start_selected(
-        self, selected_profiles: list[Profile], max_workers: int = DEFAULT_WORKERS
+        self,
+        selected_profiles: list[Profile],
+        max_workers: int = DEFAULT_WORKERS,
     ):
         self.start_profiles(selected_profiles, max_workers)
 

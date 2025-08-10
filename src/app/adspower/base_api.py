@@ -12,7 +12,9 @@ class BaseApi:
     def get(self, endpoint: str, params: dict = {}):
         try:
             return re.get(
-                f"{self.apiUrl}{endpoint}", params=params, timeout=ADSPOWER_REQUEST_TIMEOUT
+                f"{self.apiUrl}{endpoint}",
+                params=params,
+                timeout=ADSPOWER_REQUEST_TIMEOUT,
             )
         except re.exceptions.RequestException as e:
             get_logger().error(
@@ -23,7 +25,9 @@ class BaseApi:
     def post(self, endpoint: str, payload: dict):
         try:
             return re.post(
-                f"{self.apiUrl}{endpoint}", data=payload, timeout=ADSPOWER_REQUEST_TIMEOUT
+                f"{self.apiUrl}{endpoint}",
+                data=payload,
+                timeout=ADSPOWER_REQUEST_TIMEOUT,
             )
         except re.exceptions.RequestException as e:
             get_logger().error(
