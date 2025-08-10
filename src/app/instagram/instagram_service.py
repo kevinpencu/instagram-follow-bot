@@ -4,9 +4,9 @@ import traceback
 import time
 from app.airtable.enums.profile_status import AirtableProfileStatus
 from selenium import webdriver
-from app.insta.instagram_selenium import InstagramWrapper
+from app.instagram.instagram_selenium import InstagramWrapper
 from app.status_module.profile_status_types import BotStatus
-from app.insta.enums.checkpoint import Checkpoint
+from app.instagram.enums.checkpoint import Checkpoint
 from app.selenium_utils.adspower_selenium import run_selenium
 from app.status_module.profile_status_manager import (
     profile_status_manager,
@@ -14,7 +14,7 @@ from app.status_module.profile_status_manager import (
 from app.adspower.api_wrapper import adspower
 from app.logger import get_logger
 from app.airtable.profile_repository import AirTableProfileRepository
-from app.insta_module.delay_logic import delay_for_attempt
+from app.instagram.delay_logic import delay_for_attempt
 
 
 class InstagramService:

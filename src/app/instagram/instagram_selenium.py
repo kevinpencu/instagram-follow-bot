@@ -1,8 +1,8 @@
 from selenium import webdriver
-from app.insta.enums.checkpoint import Checkpoint
-from app.insta.checkpoint_conditions import CONDITIONS
-from app.insta.checkpoint_bypass import BYPASSES
-from app.insta.actions import FOLLOW_ACTION
+from app.instagram.enums.checkpoint import Checkpoint
+from app.instagram.checkpoint_conditions import CONDITIONS
+from app.instagram.checkpoint_bypass import BYPASSES
+from app.instagram.actions import FOLLOW_ACTION
 from app.selenium_utils.utils import navigate_to
 from app.logger import get_logger
 

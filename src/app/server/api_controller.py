@@ -1,6 +1,6 @@
 from flask import jsonify, request
 from app.airtable.profile_repository import AirTableProfileRepository
-from app.insta_module.instagram_service import instagram_service
+from app.instagram.instagram_service import instagram_service
 from app.status_module.profile_status_manager import (
     profile_status_manager,
 )

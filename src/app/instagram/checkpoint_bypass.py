@@ -1,4 +1,4 @@
-from app.insta.enums.checkpoint import Checkpoint
+from app.instagram.enums.checkpoint import Checkpoint
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from dataclasses import dataclass
