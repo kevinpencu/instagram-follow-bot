@@ -46,11 +46,6 @@ class InstagramService:
             profile_executor.submit(self.run_single, profile, 1)
             time.sleep(2)
 
-    def do_start_selected(
-        self, selected_profiles: list[Profile], max_workers: int = 4
-    ):
-        self.start_profiles(selected_profiles, max_workers)
-
     def start_all(self, max_workers: int = 4):
         executor.submit(
             self.do_start_selected,
@@ -74,6 +69,11 @@ class InstagramService:
         executor.submit(
             self.do_start_selected, selected_profiles, max_workers
         )
+
+    def do_start_selected(
+        self, selected_profiles: list[Profile], max_workers: int = 4
+    ):
+        self.start_profiles(selected_profiles, max_workers)
 
     def stop_all(self):
         profile_status_manager.stop_all()
@@ -254,7 +254,9 @@ class InstagramService:
         self, profile: Profile, attempt_no: int = 1
     ) -> webdriver.Chrome:
         profile_status_manager.init_profile(profile)
-        profile_status_manager.set_status(profile.ads_power_id, BotStatus.Preparing)
+        profile_status_manager.set_status(
+            profile.ads_power_id, BotStatus.Preparing
+        )
 
         get_logger().info(
             f"Running delay for profile: {profile.username}"
@@ -450,7 +452,7 @@ class InstagramService:
                 except Exception as e:
                     error_msg = f"{str(e)}\n{traceback.format_exc()}"
                     get_logger().error(
-                            f"User: {profile.username}, Target: {username} Follow Action Failed: {error_msg}. Going to next..."
+                        f"User: {profile.username}, Target: {username} Follow Action Failed: {error_msg}. Going to next..."
                     )
 
             # Shutdown profile

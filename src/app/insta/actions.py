@@ -22,7 +22,6 @@ class Action:
         except Exception as e:
             get_logger().error(f"Failed to run click: {str(e)}")
 
-
         return True
 
 
