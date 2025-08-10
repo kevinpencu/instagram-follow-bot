@@ -453,7 +453,7 @@ class InstagramService:
                 except Exception as e:
                     error_msg = f"{str(e)}\n{traceback.format_exc()}"
                     get_logger().error(
-                        f"Follow Action Failed: {error_msg}. Going to next..."
+                            f"User: {profile.username}, Target: {username} Follow Action Failed: {error_msg}. Going to next..."
                     )
 
             # Shutdown profile
