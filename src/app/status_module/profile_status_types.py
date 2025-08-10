@@ -5,9 +5,11 @@ from enum import Enum
 
 class BotStatus(str, Enum):
     Pending = "scheduled"
+    Preparing = "preparing"
     Running = "running"
     Stopping = "stopping"
     Failed = "failed"
+    MaxRetries = "maxRetries"
     SeleniumFailed = "seleniumFailed"
     AdsPowerStartFailed = "adsPowerFailed"
     Retrying = "retrying"

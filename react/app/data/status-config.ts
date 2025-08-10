@@ -4,6 +4,7 @@ export const statusConfig = {
   done: { variant: 'outline' as const, label: 'Done', animate: false },
   preparing: { variant: 'secondary' as const, label: 'Preparing', animate: true },
   failed: { variant: 'destructive' as const, label: 'Failed', animate: false },
+  maxRetries: { variant: 'destructive' as const, label: 'Max. Retries Reached', animate: false },
   seleniumFailed: { variant: 'destructive' as const, label: 'Selenium Failed', animate: false },
   adsPowerFailed: { variant: 'destructive' as const, label: 'AdsPower Failed', animate: false },
   followblocked: { variant: 'destructive' as const, label: 'Follow Blocked', animate: false },

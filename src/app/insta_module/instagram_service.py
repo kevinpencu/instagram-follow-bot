@@ -259,13 +259,15 @@ class InstagramService:
         self, profile: Profile, attempt_no: int = 1
     ) -> webdriver.Chrome:
         profile_status_manager.init_profile(profile)
+        profile_status_manager.set_status(profile.ads_power_id, BotStatus.Preparing)
 
         get_logger().info(
             f"Running delay for profile: {profile.username}"
         )
+
         if self.on_attempt_delay(attempt_no) is False:
             profile_status_manager.set_status(
-                profile.ads_power_id, BotStatus.Failed
+                profile.ads_power_id, BotStatus.MaxRetries
             )
             return None
 
