@@ -10,7 +10,7 @@ logging.basicConfig(
 
 log_to_file = get_cfg()["settings"]["logToFile"]
 
-if log_to_file != "false" and log_to_file != None:
+if log_to_file != "false" and log_to_file is not None:
     log_file_path = "app.log"
     log_formatter = logging.Formatter(
         "%(asctime)s %(levelname)s %(message)s"

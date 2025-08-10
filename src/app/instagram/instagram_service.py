@@ -22,23 +22,17 @@ from app.core.constants import (
     MAX_SHUTDOWN_ATTEMPTS,
     SHUTDOWN_RETRY_DELAY,
 )
+from app.instagram.handlers.checkpoint_handlers import (
+    create_handler_registry,
+    HandlerContext,
+)
 
 
 class InstagramService:
     def __init__(self):
-        self._handlers = {
-            Checkpoint.AlreadyFollowedOrRequested: self.already_followed_or_requested_handler,
-            Checkpoint.PageFollowedOrRequested: self.followed_or_requested_handler,
-            Checkpoint.PageUnavailable: self.page_unavailable_handler,
-            Checkpoint.FailedToFollow: self.failed_follow_handler,
-            Checkpoint.AccountSuspended: self.account_suspended_handler,
-            Checkpoint.AccountBanned: self.account_banned_handler,
-            Checkpoint.FollowBlocked: self.follow_blocked_handler,
-            Checkpoint.AccountLoggedOut: self.account_logged_out_handler,
-            Checkpoint.SomethingWentWrongCheckpoint: self.something_went_wrong_handler,
-            Checkpoint.AccountCompromised: self.account_compromised_handler,
-            Checkpoint.BadProxy: self.bad_proxy_handler,
-        }
+        self._handler_registry = create_handler_registry(
+            self.shutdown_profile, profile_status_manager
+        )
 
     def start_profiles(
         self, profiles: list[Profile], max_workers: int = DEFAULT_WORKERS
@@ -88,161 +82,6 @@ class InstagramService:
         profile_status_manager.stop_all()
         pass
 
-    def already_followed_or_requested_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-
-        profile_status_manager.increment_already_followed(
-            profile.ads_power_id
-        )
-        if target not in processed_targets:
-            processed_targets.append(target)
-
-        return True
-
-    def followed_or_requested_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-        profile_status_manager.increment_total_followed(
-            profile.ads_power_id
-        )
-        processed_targets.append(target)
-
-        return True
-
-    def page_unavailable_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-        profile_status_manager.increment_total_follow_failed(
-            profile.ads_power_id
-        )
-        processed_targets.append(target)
-        return True
-
-    def failed_follow_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-        profile_status_manager.increment_total_follow_failed(
-            profile.ads_power_id
-        )
-        return True
-
-    def account_suspended_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-        self.shutdown_profile(
-            profile,
-            driver,
-            processed_targets,
-            BotStatus.AccountIsSuspended,
-        )
-        return False
-
-    def account_banned_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-        self.shutdown_profile(
-            profile, driver, processed_targets, BotStatus.Banned
-        )
-        profile.set_status(AirtableProfileStatus.Banned)
-        return False
-
-    def follow_blocked_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-        profile.update_follow_limit_reached()
-        self.shutdown_profile(
-            profile, driver, processed_targets, BotStatus.FollowBlocked
-        )
-        return False
-
-    def account_logged_out_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-        self.shutdown_profile(
-            profile, driver, processed_targets, BotStatus.AccountLoggedOut
-        )
-        profile.set_status(AirtableProfileStatus.LoggedOut)
-        return False
-
-    def something_went_wrong_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-        self.shutdown_profile(
-            profile,
-            driver,
-            processed_targets,
-            BotStatus.SomethingWentWrong,
-        )
-        return False
-
-    def account_compromised_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-        self.shutdown_profile(
-            profile,
-            driver,
-            processed_targets,
-            BotStatus.AccountCompromised,
-        )
-        profile.set_status(AirtableProfileStatus.ChangePasswordCheckpoint)
-
-    def bad_proxy_handler(
-        self,
-        profile: Profile,
-        driver: webdriver.Chrome,
-        processed_targets: list[str],
-        target: str,
-    ) -> bool:
-        self.shutdown_profile(
-            profile,
-            driver,
-            processed_targets,
-            BotStatus.BadProxy,
-        )
-        profile.set_status(AirtableProfileStatus.BadProxy)
-        return False
-
     def on_handle_status(
         self,
         cp: Checkpoint,
@@ -252,11 +91,11 @@ class InstagramService:
         target: str,
     ):
         get_logger().info(f"Processing {cp} checkpoint")
-        if cp not in self._handlers:
+        if cp not in self._handler_registry:
             return True
 
-        return self._handlers[cp](
-            profile, driver, processed_targets, target
+        return self._handler_registry[cp].handle(
+            HandlerContext(profile, driver, processed_targets, target)
         )
 
     def prepare_profile(
