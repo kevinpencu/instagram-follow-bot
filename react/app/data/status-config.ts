@@ -2,6 +2,7 @@ export const statusConfig = {
   scheduled: { variant: 'secondary' as const, label: 'Scheduled', animate: true },
   running: { variant: 'default' as const, label: 'Running', animate: true },
   done: { variant: 'outline' as const, label: 'Done', animate: false },
+  preparing: { variant: 'secondary' as const, label: 'Preparing', animate: true },
   failed: { variant: 'destructive' as const, label: 'Failed', animate: false },
   seleniumFailed: { variant: 'destructive' as const, label: 'Selenium Failed', animate: false },
   adsPowerFailed: { variant: 'destructive' as const, label: 'AdsPower Failed', animate: false },
