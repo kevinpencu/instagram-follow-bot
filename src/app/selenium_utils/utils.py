@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 import time
+from app.constants import SELENIUM_WAIT_DELAY
 
 
 def close_tabs(driver: webdriver.Chrome):
@@ -17,7 +18,7 @@ def close_tabs(driver: webdriver.Chrome):
 
 def navigate_to(driver: webdriver.Chrome, url: str):
     driver.get(url)
-    time.sleep(2.5)
+    time.sleep(SELENIUM_WAIT_DELAY)
 
 
 def wait_page_loaded(driver: webdriver.Chrome):

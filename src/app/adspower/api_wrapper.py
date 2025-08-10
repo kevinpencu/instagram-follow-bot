@@ -1,6 +1,7 @@
 from app.config import get_cfg
 from app.adspower.base_api import BaseApi
 from app.logger import get_logger
+from app.constants import ADSPOWER_SUCCESS_CODE
 from dataclasses import dataclass
 
 config = get_cfg()["adspower"]
@@ -38,21 +39,21 @@ class AdsPowerApi(BaseApi):
         payload = {
             "user_id": user_id,
             "launch_args": "",
-            "headless": 0,
-            "disable_password_filling": 0,
-            "clear_cache_after_closing": 0,
-            "enable_password_saving": 0,
+            "headless": ADSPOWER_SUCCESS_CODE,
+            "disable_password_filling": ADSPOWER_SUCCESS_CODE,
+            "clear_cache_after_closing": ADSPOWER_SUCCESS_CODE,
+            "enable_password_saving": ADSPOWER_SUCCESS_CODE,
         }
 
         json = self.get("/browser/active", payload).json()
-        if json.get("code") != 0:
+        if json.get("code") != ADSPOWER_SUCCESS_CODE:
             get_logger().error(
                 "[ADSPOWER]: Failed to start profile via check status. Testing via browser start."
             )
             get_logger().error(f"[ADSPOWER]: {json}")
 
         json = self.get("/browser/start", payload).json()
-        if json.get("code") != 0:
+        if json.get("code") != ADSPOWER_SUCCESS_CODE:
             get_logger().error(
                 "[ADSPOWER]: Failed to start profile via browser start. Abandoning"
             )

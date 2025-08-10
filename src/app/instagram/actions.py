@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium import webdriver
 from dataclasses import dataclass
 from app.logger import get_logger
+from app.constants import FOLLOW_ACTION_DELAY
 
 
 @dataclass
@@ -25,4 +26,4 @@ class Action:
         return False
 
 
-FOLLOW_ACTION = Action("//div[text()='Follow']", 3)
+FOLLOW_ACTION = Action("//div[text()='Follow']", FOLLOW_ACTION_DELAY)

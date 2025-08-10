@@ -15,6 +15,7 @@ from app.adspower.api_wrapper import adspower
 from app.logger import get_logger
 from app.airtable.profile_repository import AirTableProfileRepository
 from app.instagram.delay_logic import delay_for_attempt
+from app.constants import DEFAULT_WORKERS, SELENIUM_STARTUP_DELAY, PROFILE_START_DELAY, MAX_SHUTDOWN_ATTEMPTS, SHUTDOWN_RETRY_DELAY
 
 
 class InstagramService:
@@ -34,7 +35,7 @@ class InstagramService:
         }
 
     def start_profiles(
-        self, profiles: list[Profile], max_workers: int = 4
+        self, profiles: list[Profile], max_workers: int = DEFAULT_WORKERS
     ):
         for profile in profiles:
             profile_status_manager.schedule_profile(profile.ads_power_id)
@@ -44,9 +45,9 @@ class InstagramService:
         for profile in profiles:
             get_logger().info(f"Starting profile: {profile.username}")
             profile_executor.submit(self.run_single, profile, 1)
-            time.sleep(2)
+            time.sleep(PROFILE_START_DELAY)
 
-    def start_all(self, max_workers: int = 4):
+    def start_all(self, max_workers: int = DEFAULT_WORKERS):
         executor.submit(
             self.do_start_selected,
             AirTableProfileRepository.get_profiles(),
@@ -54,7 +55,7 @@ class InstagramService:
         )
 
     def start_selected(
-        self, ads_power_ids: list[str], max_workers: int = 4
+        self, ads_power_ids: list[str], max_workers: int = DEFAULT_WORKERS
     ):
         all_profiles = AirTableProfileRepository.get_profiles()
         selected_profiles = [
@@ -71,7 +72,7 @@ class InstagramService:
         )
 
     def do_start_selected(
-        self, selected_profiles: list[Profile], max_workers: int = 4
+        self, selected_profiles: list[Profile], max_workers: int = DEFAULT_WORKERS
     ):
         self.start_profiles(selected_profiles, max_workers)
 
@@ -295,7 +296,7 @@ class InstagramService:
         get_logger().info(
             f"Waiting before starting selenium for profile: {profile.username}"
         )
-        time.sleep(7.5)
+        time.sleep(SELENIUM_STARTUP_DELAY)
 
         get_logger().info(
             f"Starting Selenium For profile: {profile.username}"
@@ -341,7 +342,7 @@ class InstagramService:
         shutdown_attempt_no: int = 0,
     ):
         get_logger().info(f"Shutting down profile {profile.username}...")
-        if shutdown_attempt_no >= 3:
+        if shutdown_attempt_no >= MAX_SHUTDOWN_ATTEMPTS:
             get_logger().info(
                 f"Aborting shutdown for down profile {profile.username}..."
             )
@@ -375,7 +376,7 @@ class InstagramService:
             get_logger().error(
                 f"Shutdown for profile {profile.ads_power_id} failed, sleeping and executing retry no: [{shutdown_attempt_no + 1}]...\n{str(e)}"
             )
-            time.sleep(5)
+            time.sleep(SHUTDOWN_RETRY_DELAY)
             self.shutdown_profile(
                 profile,
                 driver,
