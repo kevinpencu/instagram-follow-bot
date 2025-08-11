@@ -4,7 +4,7 @@ import traceback
 import time
 from app.airtable.enums.profile_status import AirtableProfileStatus
 from selenium import webdriver
-from app.instagram.instagram_selenium import InstagramWrapper
+from app.instagram.instagram_wrapper import InstagramWrapper
 from app.status.profile_status_types import BotStatus
 from app.instagram.enums.checkpoint import Checkpoint
 from app.selenium_utils.adspower_selenium import run_selenium
@@ -246,6 +246,9 @@ class InstagramService:
         delay_executor.submit(self.run_single, profile, attempt_no)
 
         return True
+
+    def accept_requests(self, driver: webdriver.Chrome) -> bool:
+        pass
 
     def run_single(self, profile: Profile, attempt_no: int = 1):
         get_logger().info(f"Running Single: {profile.username}")
