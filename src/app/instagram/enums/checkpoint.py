@@ -8,6 +8,7 @@ class Checkpoint(str, Enum):
     AutomaticBehaviourSuspected = "AutomaticBehaviourSuspected"
     AccountBanned = "AccountBanned"
     AccountSuspended = "AccountSuspended"
+    AccountLoggedIn = "AccountLoggedIn"
     AccountLoggedOut = "AccountLoggedOut"
     SaveLoginInfo = "SaveLoginInfo"
     PageFollowedOrRequested = "PageFollowedOrRequested"
