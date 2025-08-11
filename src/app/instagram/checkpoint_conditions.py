@@ -47,12 +47,6 @@ CONDITIONS = {
         xpath_query="//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
         cond_operator=operator.gt,
     ),
-    Checkpoint.AccountLoggedIn: CheckpointCondition(
-        checkpoint=Checkpoint.AccountLoggedIn,
-        xpath_item_len=0,
-        xpath_query="//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
-        cond_operator=operator.le,
-    ),
     Checkpoint.AccountSuspended: CheckpointCondition(
         checkpoint=Checkpoint.AccountSuspended,
         condition_url="/accounts/suspended",
@@ -105,3 +99,10 @@ CONDITIONS = {
         cond_operator=operator.gt,
     ),
 }
+
+logged_in_condition = CheckpointCondition(
+    checkpoint=Checkpoint.AccountLoggedIn,
+    xpath_item_len=0,
+    xpath_query="//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
+    cond_operator=operator.le,
+)

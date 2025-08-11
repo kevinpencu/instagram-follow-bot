@@ -266,6 +266,12 @@ class InstagramService:
             processed_targets = profile.download_processed_targets()
             logged_in = False
 
+            insta_wrapper = InstagramWrapper(selenium_instance)
+            get_logger().info(
+                "Accepting Follow Requests Before Following..."
+            )
+            insta_wrapper.accept_follow_requests()
+
             for username in targets:
                 # Check if stop action was initiated
                 if profile_status_manager.should_stop(
@@ -283,9 +289,7 @@ class InstagramService:
                 try:
                     # Run follow action
                     res = self.on_handle_status(
-                        InstagramWrapper(selenium_instance).follow_action(
-                            username
-                        ),
+                        insta_wrapper.follow_action(username),
                         profile,
                         selenium_instance,
                         processed_targets,

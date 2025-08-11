@@ -1,6 +1,9 @@
 from selenium import webdriver
 from app.instagram.enums.checkpoint import Checkpoint
-from app.instagram.checkpoint_conditions import CONDITIONS
+from app.instagram.checkpoint_conditions import (
+    CONDITIONS,
+    logged_in_condition,
+)
 from app.instagram.checkpoint_bypass import BYPASSES
 from app.instagram.actions import (
     FOLLOW_ACTION,
@@ -17,9 +20,7 @@ class InstagramWrapper:
         self.driver = driver
 
     def is_logged_in(self):
-        return CONDITIONS[Checkpoint.AccountLoggedIn].is_active(
-            self.driver
-        )
+        return logged_in_condition.is_active(self.driver)
 
     def accept_follow_requests(self):
         return ACCEPT_FOLLOW_REQUESTS_CHAIN.run(self.driver)
