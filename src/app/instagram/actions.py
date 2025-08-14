@@ -1,9 +1,13 @@
 import time
+import random
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from dataclasses import dataclass
 from app.core.logger import get_logger
-from app.core.constants import FOLLOW_ACTION_DELAY
+from app.core.constants import (
+    FOLLOW_ACTION_DELAY_MINIMUM,
+    FOLLOW_ACTION_DELAY_MAXIMUM,
+)
 from app.instagram.checkpoint_conditions import (
     Checkpoint,
     logged_in_condition,
@@ -53,11 +57,14 @@ class ActionChain:
         return all(a.run(driver) for a in self.actions)
 
 
-FOLLOW_ACTION = Action(
-    xpath_queries=["//div[text()='Follow']"],
-    sleep=FOLLOW_ACTION_DELAY,
-    all=False,
-)
+def create_follow_action() -> Action:
+    dynamic_delay = random.uniform(FOLLOW_ACTION_DELAY_MINIMUM, FOLLOW_ACTION_DELAY_MAXIMUM)
+    return Action(
+        xpath_queries=["//div[text()='Follow']"],
+        sleep=dynamic_delay,
+        all=False,
+    )
+
 
 ACCEPT_FOLLOW_REQUESTS_CHAIN = ActionChain(
     preconditions=[logged_in_condition],

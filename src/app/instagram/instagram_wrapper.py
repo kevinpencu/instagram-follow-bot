@@ -3,10 +3,11 @@ from app.instagram.enums.checkpoint import Checkpoint
 from app.instagram.checkpoint_conditions import (
     CONDITIONS,
     logged_in_condition,
+    is_page_private_condition,
 )
 from app.instagram.checkpoint_bypass import BYPASSES
 from app.instagram.actions import (
-    FOLLOW_ACTION,
+    create_follow_action,
     ACCEPT_FOLLOW_REQUESTS_CHAIN,
 )
 from app.selenium_utils.utils import navigate_to
@@ -56,10 +57,19 @@ class InstagramWrapper:
         get_logger().info(
             f"[INSTAWRAPPER, TARGET: {target}]: Executing Follow Action..."
         )
-        FOLLOW_ACTION.run(self.driver)
+
+        is_page_private = is_page_private_condition.is_active(self.driver)
+
+        create_follow_action().run(self.driver)
 
         cp = self.get_cp()
         if cp is None:
+            return Checkpoint.FollowBlocked
+
+        if (
+            cp is Checkpoint.PageFollowedOrRequested
+            or cp is Checkpoint.AlreadyFollowedOrRequested
+        ) and is_page_private is False:
             return Checkpoint.FollowBlocked
 
         return cp

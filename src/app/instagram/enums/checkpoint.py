@@ -16,3 +16,4 @@ class Checkpoint(str, Enum):
     PageUnavailable = "PageUnavailable"
     FailedToFollow = "FailedToFollow"
     FollowBlocked = "FollowBlocked"
+    PageIsPrivate = "PageIsPrivate"

@@ -106,3 +106,10 @@ logged_in_condition = CheckpointCondition(
     xpath_query="//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
     cond_operator=operator.le,
 )
+
+is_page_private_condition = CheckpointCondition(
+    checkpoint=Checkpoint.PageIsPrivate,
+    xpath_item_len=0,
+    xpath_query="//*[text()='This account is private']",
+    cond_operator=operator.gt,
+)
