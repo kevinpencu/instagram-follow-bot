@@ -28,7 +28,7 @@ class Action:
                 return False
 
             try:
-                if all:
+                if self.all:
                     for x in elems:
                         x.click()
                         time.sleep(self.sleep)
