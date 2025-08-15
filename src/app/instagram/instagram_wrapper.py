@@ -66,10 +66,7 @@ class InstagramWrapper:
         if cp is None:
             return Checkpoint.FollowBlocked
 
-        if (
-            cp is Checkpoint.PageFollowedOrRequested
-            or cp is Checkpoint.AlreadyFollowedOrRequested
-        ) and is_page_private is False:
+        if cp is Checkpoint.PageRequested and is_page_private is False:
             return Checkpoint.FollowBlocked
 
         return cp

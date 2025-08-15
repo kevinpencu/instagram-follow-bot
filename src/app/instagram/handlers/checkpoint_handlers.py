@@ -26,6 +26,24 @@ class PageFollowedOrRequestedHandler(CheckpointHandler):
         return True
 
 
+class PageFollowedHandler(CheckpointHandler):
+    def handle(self, context: HandlerContext):
+        self.status_manager.increment_total_followed(
+            context.profile.ads_power_id
+        )
+        context.processed_targets.append(context.target)
+        return True
+
+
+class PageRequestedHandler(CheckpointHandler):
+    def handle(self, context: HandlerContext):
+        self.status_manager.increment_total_followed(
+            context.profile.ads_power_id
+        )
+        context.processed_targets.append(context.target)
+        return True
+
+
 class PageUnavailableHandler(CheckpointHandler):
     def handle(self, context: HandlerContext):
         self.status_manager.increment_total_follow_failed(
@@ -134,6 +152,12 @@ def create_handler_registry(
     shutdown_fn: Callable, status_manager: ProfileStatusManager
 ):
     registry = {
+        Checkpoint.PageFollowed: PageFollowedHandler(
+            shutdown_fn, status_manager
+        ),
+        Checkpoint.PageRequested: PageRequestedHandler(
+            shutdown_fn, status_manager
+        ),
         Checkpoint.AlreadyFollowedOrRequested: AlreadyFollowedOrRequestedHandler(
             shutdown_fn, status_manager
         ),

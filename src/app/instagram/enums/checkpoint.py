@@ -12,6 +12,8 @@ class Checkpoint(str, Enum):
     AccountLoggedOut = "AccountLoggedOut"
     SaveLoginInfo = "SaveLoginInfo"
     PageFollowedOrRequested = "PageFollowedOrRequested"
+    PageFollowed = "PageFollowed"
+    PageRequested = "PageRequested"
     AlreadyFollowedOrRequested = "AlreadyFollowedOrRequested"
     PageUnavailable = "PageUnavailable"
     FailedToFollow = "FailedToFollow"

@@ -60,7 +60,7 @@ class ActionChain:
 def create_follow_action() -> Action:
     dynamic_delay = random.uniform(FOLLOW_ACTION_DELAY_MINIMUM, FOLLOW_ACTION_DELAY_MAXIMUM)
     return Action(
-        xpath_queries=["//div[text()='Follow']"],
+        xpath_queries=["//button[.//div[normalize-space(text())='Follow']]"],
         sleep=dynamic_delay,
         all=False,
     )

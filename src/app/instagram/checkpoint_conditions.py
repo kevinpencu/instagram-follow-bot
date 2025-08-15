@@ -91,6 +91,20 @@ CONDITIONS = {
         xpath_query='//*[text()="Sorry, this page isn\'t available."]',
         cond_operator=operator.gt,
     ),
+    Checkpoint.PageFollowed: CheckpointCondition(
+        before_action_checkpoint=Checkpoint.AlreadyFollowedOrRequested,
+        checkpoint=Checkpoint.PageFollowed,
+        xpath_item_len=0,
+        xpath_query="//div[text()='Following']",
+        cond_operator=operator.gt,
+    ),
+    Checkpoint.PageRequested: CheckpointCondition(
+        before_action_checkpoint=Checkpoint.AlreadyFollowedOrRequested,
+        checkpoint=Checkpoint.PageRequested,
+        xpath_item_len=0,
+        xpath_query="//div[text()='Requested']",
+        cond_operator=operator.gt,
+    ),
     Checkpoint.PageFollowedOrRequested: CheckpointCondition(
         before_action_checkpoint=Checkpoint.AlreadyFollowedOrRequested,
         checkpoint=Checkpoint.PageFollowedOrRequested,
