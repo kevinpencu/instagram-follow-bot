@@ -39,10 +39,10 @@ class AdsPowerApi(BaseApi):
         payload = {
             "user_id": user_id,
             "launch_args": "",
-            "headless": ADSPOWER_SUCCESS_CODE,
-            "disable_password_filling": ADSPOWER_SUCCESS_CODE,
-            "clear_cache_after_closing": ADSPOWER_SUCCESS_CODE,
-            "enable_password_saving": ADSPOWER_SUCCESS_CODE,
+            "headless": 0,
+            "disable_password_filling": 0,
+            "clear_cache_after_closing": 1,
+            "enable_password_saving": 0,
         }
 
         json = self.get("/browser/active", payload).json()
