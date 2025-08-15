@@ -101,6 +101,7 @@ class InstagramService:
     def prepare_profile(
         self, profile: Profile, attempt_no: int = 1
     ) -> webdriver.Chrome:
+        profile.refresh()
         profile_status_manager.init_profile(profile)
         profile_status_manager.set_status(
             profile.ads_power_id, BotStatus.Preparing
