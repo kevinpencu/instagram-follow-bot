@@ -45,26 +45,29 @@ class AdsPowerApi(BaseApi):
             "enable_password_saving": 0,
         }
 
-        json = self.get("/browser/active", payload).json()
-        if json.get("code") != ADSPOWER_SUCCESS_CODE:
-            get_logger().error(
-                "[ADSPOWER]: Failed to start profile via check status. Testing via browser start."
-            )
-            get_logger().error(f"[ADSPOWER]: {json}")
+        try:
+            json = self.get("/browser/active", payload).json()
+            if json.get("code") != ADSPOWER_SUCCESS_CODE:
+                get_logger().error(
+                    "[ADSPOWER]: Failed to start profile via check status. Testing via browser start."
+                )
+                get_logger().error(f"[ADSPOWER]: {json}")
 
-        json = self.get("/browser/start", payload).json()
-        if json.get("code") != ADSPOWER_SUCCESS_CODE:
-            get_logger().error(
-                "[ADSPOWER]: Failed to start profile via browser start. Abandoning"
+            json = self.get("/browser/start", payload).json()
+            if json.get("code") != ADSPOWER_SUCCESS_CODE:
+                get_logger().error(
+                    "[ADSPOWER]: Failed to start profile via browser start. Abandoning"
+                )
+                get_logger().error(f"[ADSPOWER]: {json}")
+                return None
+
+            return StartProfileResponse(
+                debug_port=json["data"]["debug_port"],
+                webdriver=json["data"]["webdriver"],
+                url=json["data"]["ws"]["selenium"],
             )
-            get_logger().error(f"[ADSPOWER]: {json}")
+        except Exception as e:
             return None
-
-        return StartProfileResponse(
-            debug_port=json["data"]["debug_port"],
-            webdriver=json["data"]["webdriver"],
-            url=json["data"]["ws"]["selenium"],
-        )
 
     def stop_profile(self, user_id: str):
         return self.get("/browser/stop", params={"user_id": user_id})
