@@ -30,6 +30,11 @@ class MainApiController:
 
         return ads_power_profile_ids
 
+    # helper method
+    def get_accept_follow_requests(self):
+        body = request.get_json() or {}
+        return body.get("acceptFollowRequests", False)
+
     def get_profiles(self):
         try:
             return AirTableProfileRepository().get_profiles()
@@ -55,7 +60,9 @@ class MainApiController:
 
     def start_all(self):
         try:
-            instagram_service.start_all(self.get_max_workers())
+            instagram_service.start_all(
+                self.get_max_workers(), self.get_accept_follow_requests()
+            )
         except Exception as e:
             error_msg = f"\n{str(e)} \n {traceback.format_exc()}"
             get_logger().error(f"Start All Failed{error_msg}")
@@ -72,7 +79,9 @@ class MainApiController:
     def start_selected(self):
         try:
             instagram_service.start_selected(
-                self.get_adspowerids(), self.get_max_workers()
+                self.get_adspowerids(),
+                self.get_max_workers(),
+                self.get_accept_follow_requests(),
             )
         except Exception as e:
             error_msg = f"\n{str(e)} \n {traceback.format_exc()}"
