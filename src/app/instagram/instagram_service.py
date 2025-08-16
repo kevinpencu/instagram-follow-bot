@@ -2,6 +2,7 @@ from app.airtable.models.profile import Profile
 from app.core.executor import get_executor, delay_executor, executor
 import traceback
 import time
+from datetime import datetime, timezone
 from app.airtable.enums.profile_status import AirtableProfileStatus
 from selenium import webdriver
 from app.instagram.instagram_wrapper import InstagramWrapper
@@ -286,6 +287,29 @@ class InstagramService:
         unfollow_users: bool = False
     ):
         get_logger().info(f"Running Single: {profile.username}")
+        
+        # Check if profile is currently follow blocked
+        if profile.reached_follow_limit_date:
+            try:
+                follow_limit_date = datetime.fromisoformat(
+                    profile.reached_follow_limit_date.replace('Z', '+00:00')
+                )
+                current_time = datetime.now(timezone.utc)
+                
+                if follow_limit_date > current_time:
+                    get_logger().info(
+                        f"Profile {profile.username} is follow blocked until {follow_limit_date}, skipping..."
+                    )
+                    profile_status_manager.init_profile(profile)
+                    profile_status_manager.set_status(
+                        profile.ads_power_id, BotStatus.FollowBlocked
+                    )
+                    return
+            except (ValueError, TypeError) as e:
+                get_logger().warning(
+                    f"Invalid reached_follow_limit_date format for {profile.username}: {profile.reached_follow_limit_date}"
+                )
+
         selenium_instance = None
         try:
             selenium_instance = self.prepare_profile(
