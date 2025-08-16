@@ -2,6 +2,7 @@ import time
 import random
 from selenium.webdriver.common.by import By
 from selenium import webdriver
+from selenium.common.exceptions import ElementNotInteractableException
 from dataclasses import dataclass
 from app.core.logger import get_logger
 from app.core.constants import (
@@ -49,13 +50,36 @@ class AcceptRequestsAction(Action):
         super().__init__([])
         self.accepted_users = []
 
-    def run(self, driver: webdriver.Chrome) -> bool:
-        notifications_btn = driver.find_elements(By.XPATH, "//*[@aria-label='Notifications']")
-        if len(notifications_btn) <= 0:
-            return False
 
-        notifications_btn[0].click()
-        time.sleep(7)
+    def press_notifications_btn(self, driver: webdriver.Chrome, small_view: bool = False):
+        if small_view:
+            small_view_tag = driver.find_elements(By.XPATH, "//a[@href='/notifications/']")
+            if len(small_view_tag) <= 0:
+                return False
+
+            driver.execute_script("arguments[0].click();", small_view_tag[0])
+            time.sleep(7)
+
+            return "notifications" in driver.current_url
+
+
+        noti_btn = driver.find_elements(By.XPATH, "//*[@aria-label='Notifications']")
+        if len(noti_btn) <= 0:
+            return self.press_notifications_btn(driver, True)
+
+        try:
+            noti_btn[0].click()
+            time.sleep(7)
+            return True
+        except Exception as e:
+            pass
+
+        return self.press_notifications_btn(driver, True)
+
+
+    def run(self, driver: webdriver.Chrome) -> bool:
+        if self.press_notifications_btn(driver) is False:
+            return False
 
         follow_requests_btn = driver.find_elements(By.XPATH, "//span[text()='Follow requests']")
         if len(follow_requests_btn) <= 0:
