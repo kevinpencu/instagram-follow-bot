@@ -55,10 +55,14 @@ class ApiService {
     return this.request<StatusResponse>('/status');
   }
 
-  async startAll(maxWorkers?: number): Promise<{}> {
+  async startAll(maxWorkers?: number, acceptFollowRequests?: boolean): Promise<{}> {
+    const body: any = {};
+    if (maxWorkers) body.maxWorkers = maxWorkers;
+    if (acceptFollowRequests !== undefined) body.acceptFollowRequests = acceptFollowRequests;
+    
     return this.request<{}>('/start-all', {
       method: 'POST',
-      body: maxWorkers ? JSON.stringify({ maxWorkers }) : undefined,
+      body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined,
     });
   }
 
@@ -69,13 +73,14 @@ class ApiService {
   }
 
 
-  async startSelected(adsPowerIds: string[], maxWorkers?: number): Promise<{}> {
+  async startSelected(adsPowerIds: string[], maxWorkers?: number, acceptFollowRequests?: boolean): Promise<{}> {
+    const body: any = { adsPowerIds };
+    if (maxWorkers) body.maxWorkers = maxWorkers;
+    if (acceptFollowRequests !== undefined) body.acceptFollowRequests = acceptFollowRequests;
+    
     return this.request<{}>('/start-selected', {
       method: 'POST',
-      body: JSON.stringify({
-        adsPowerIds,
-        ...(maxWorkers && { maxWorkers })
-      }),
+      body: JSON.stringify(body),
     });
   }
 }

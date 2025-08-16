@@ -130,15 +130,15 @@ export default function Index() {
     }
   }
 
-  const handleConfirmAction = async (maxWorkers: number) => {
+  const handleConfirmAction = async (maxWorkers: number, acceptFollowRequests: boolean) => {
     try {
       if (modalAction === "start-all") {
         setIsStartingAll(true);
-        await apiService.startAll(maxWorkers);
+        await apiService.startAll(maxWorkers, acceptFollowRequests);
       } else {
         setIsStartingSelected(true);
         const selectedAdsPowerIds = Array.from(selectedRows);
-        await apiService.startSelected(selectedAdsPowerIds, maxWorkers);
+        await apiService.startSelected(selectedAdsPowerIds, maxWorkers, acceptFollowRequests);
       }
       fetchStatus();
       setModalOpen(false);

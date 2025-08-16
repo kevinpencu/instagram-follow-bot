@@ -10,12 +10,13 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { Checkbox } from "~/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 
 interface WorkerInputModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (maxWorkers: number) => Promise<void>;
+  onConfirm: (maxWorkers: number, acceptFollowRequests: boolean) => Promise<void>;
   actionType: "start-all" | "start-selected";
   selectedCount?: number;
   isLoading: boolean;
@@ -30,6 +31,7 @@ export function WorkerInputModal({
   isLoading,
 }: WorkerInputModalProps) {
   const [maxWorkers, setMaxWorkers] = useState<string>("4");
+  const [acceptFollowRequests, setAcceptFollowRequests] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
   const handleConfirm = async () => {
@@ -41,12 +43,13 @@ export function WorkerInputModal({
     }
     
     setError("");
-    await onConfirm(workersNum);
+    await onConfirm(workersNum, acceptFollowRequests);
   };
 
   const handleClose = () => {
     setError("");
     setMaxWorkers("4");
+    setAcceptFollowRequests(false);
     onClose();
   };
 
@@ -85,6 +88,17 @@ export function WorkerInputModal({
               placeholder="4"
               disabled={isLoading}
             />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="acceptFollowRequests"
+              checked={acceptFollowRequests}
+              onCheckedChange={setAcceptFollowRequests}
+              disabled={isLoading}
+            />
+            <Label htmlFor="acceptFollowRequests" className="text-sm">
+              Accept follow requests during automation
+            </Label>
           </div>
           {error && (
             <div className="text-sm text-destructive text-center">
