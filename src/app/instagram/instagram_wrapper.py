@@ -27,6 +27,9 @@ class InstagramWrapper:
     def accept_follow_requests(self) -> list[str]:
         navigate_to(self.driver, f"https://instagram.com")
         time.sleep(2)
+        if self.is_logged_in() is False:
+            return None
+
         action = AcceptRequestsAction()
         if action.run(self.driver) is False:
             get_logger().error("[INSTAWRAPPER]: Accepting requests failed")

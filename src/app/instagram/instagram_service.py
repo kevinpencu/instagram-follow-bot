@@ -259,16 +259,18 @@ class InstagramService:
             logged_in = False
 
             insta_wrapper = InstagramWrapper(selenium_instance)
-            # shutdown profile
-            if insta_wrapper.is_logged_in() is False:
-                self.on_handle_status(Checkpoint.AccountLoggedOut, profile, selenium_instance, processed_targets, "")
-                return
             
             if accept_requests:
                 get_logger().info(
                     "Accepting Follow Requests Before Following..."
                 )
                 accepted_users = insta_wrapper.accept_follow_requests()
+
+                # Logged Out
+                if accepted_users is None:
+                    self.on_handle_status(Checkpoint.AccountLoggedOut, profile, selenium_instance, processed_targets, "")
+                    return
+
                 if len(accepted_users) > 0:
                     follows_us = follows_us + accepted_users
                     profile.update_followsus_targets(follows_us)
