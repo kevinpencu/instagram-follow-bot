@@ -40,10 +40,8 @@ class InstagramWrapper:
         get_logger().info("[INSTAWRAPPER]: Accepting requests success")
         return action.accepted_users
 
-    def unfollow_users(self, users: list[str]):
-        for user in users:
-            create_unfollow_action(user).run(self.driver)
-        pass
+    def unfollow_user(self, user: str):
+        create_unfollow_action(user).run(self.driver)
 
     def get_cp(self, before_action: bool = False) -> Checkpoint:
         for cond in CONDITIONS.keys():

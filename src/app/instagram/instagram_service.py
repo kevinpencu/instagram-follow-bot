@@ -339,8 +339,10 @@ class InstagramService:
                         targets_to_unfollow.append(x)
 
                 get_logger().info(f"[INSTAGRAMSERVICE]: Unfollowing {len(targets_to_unfollow)} users")
+                while len(targets_to_unfollow) > 0 and not profile_status_manager.should_stop(profile.ads_power_id):
+                    insta_wrapper.unfollow_user(targets_to_unfollow[0])
+                    targets_to_unfollow.remove(targets_to_unfollow[0])
 
-                insta_wrapper.unfollow_users(targets_to_unfollow)
 
             for username in targets:
                 # Check if stop action was initiated
