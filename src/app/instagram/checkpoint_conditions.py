@@ -117,7 +117,7 @@ CONDITIONS = {
 logged_in_condition = CheckpointCondition(
     checkpoint=Checkpoint.AccountLoggedIn,
     xpath_item_len=0,
-    xpath_query="//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In']",
+    xpath_query="//div[@role='button' and text()='Log in'] | //div[text()='Log in'] | //div[text()='Sign up for Instagram'] | //button[text()='Log In'] | //*[text()='Log In'] | //*[text()='Log in']",
     cond_operator=operator.le,
 )
 
