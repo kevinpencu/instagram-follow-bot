@@ -42,6 +42,62 @@ class Action:
         return True
 
 
+class AcceptRequestsAction(Action):
+    accepted_users: list[str]
+
+    def __init__(self):
+        super().__init__([])
+        self.accepted_users = []
+
+    def run(self, driver: webdriver.Chrome) -> bool:
+        notifications_btn = driver.find_elements(By.XPATH, "//span[text()='Notifications']")
+        if len(notifications_btn) <= 0:
+            return False
+
+        notifications_btn[0].click()
+        time.sleep(7)
+
+        follow_requests_btn = driver.find_elements(By.XPATH, "//span[text()='Follow requests']")
+        if len(follow_requests_btn) <= 0:
+            return True
+
+        follow_requests_btn[0].click()
+        time.sleep(4)
+
+        confirm_btns = driver.find_elements(By.XPATH, "//div[text()='Confirm']")
+        if len(confirm_btns) <= 0:
+            return True
+
+        for confirm_btn in confirm_btns:
+            main_container = confirm_btn.find_elements(By.XPATH, "../../..")
+            if len(main_container) <= 0:
+                continue
+
+            children_of_main = main_container[0].find_elements(By.XPATH, "./*")
+            if len(children_of_main) <= 1:
+                continue
+
+            name_container = children_of_main[1]
+            link_tag = name_container.find_elements(By.XPATH, "./*")
+            if len(link_tag) <= 0:
+                continue
+
+            username = link_tag[0].find_elements(By.XPATH, "./*")
+            if len(username) <= 0:
+                continue
+
+            username_value = username[0].text
+            if len(username_value) <= 0:
+                continue
+
+            self.accepted_users.append(username_value)
+
+            confirm_btn.click()
+            time.sleep(2.5)
+
+        return True
+
+
 @dataclass
 class ActionChain:
     preconditions: list[CheckpointCondition]
