@@ -14,6 +14,7 @@ export interface ProfileStatus {
   total_followed: number;
   total_follow_failed: number;
   total_already_followed: number;
+  total_accepted_accounts: number;
 }
 
 export interface StatusResponse {

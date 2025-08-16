@@ -66,6 +66,7 @@ export default function Index() {
                 total_followed: 0,
                 total_follow_failed: 0,
                 total_already_followed: 0,
+                total_accepted_accounts: 0,
               }
             };
           } else {
@@ -244,12 +245,13 @@ export default function Index() {
                   <TableHead className="min-w-[60px] hidden lg:table-cell">Followed</TableHead>
                   <TableHead className="min-w-[60px] hidden lg:table-cell">Already</TableHead>
                   <TableHead className="min-w-[60px] hidden lg:table-cell">Failed</TableHead>
+                  <TableHead className="min-w-[60px] hidden lg:table-cell">Accepted</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
+                    <TableCell colSpan={10} className="text-center py-8">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Loading profiles...
@@ -258,7 +260,7 @@ export default function Index() {
                   </TableRow>
                 ) : profiles.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       No profiles found
                     </TableCell>
                   </TableRow>
@@ -309,6 +311,9 @@ export default function Index() {
                       </TableCell>
                       <TableCell className="text-center hidden lg:table-cell">
                         {profile.status?.total_follow_failed ?? '-'}
+                      </TableCell>
+                      <TableCell className="text-center hidden lg:table-cell">
+                        {profile.status?.total_accepted_accounts ?? '-'}
                       </TableCell>
                     </TableRow>
                   ))
