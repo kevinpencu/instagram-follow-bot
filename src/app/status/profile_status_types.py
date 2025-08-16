@@ -103,13 +103,12 @@ class ProfileStatusContext:
         prof.total_already_followed = prof.total_already_followed + 1
 
     def set_total_accepted_accounts(
-        self, ads_power_id: str
+        self, ads_power_id: str, total: int
     ) -> ActiveProfileStats:
         prof = self.get_profile(ads_power_id)
         if prof is None:
             return
-        prof.total_accepted_accounts = prof.total_accepted_accounts + 1
-
+        prof.total_accepted_accounts = total
 
     def schedule(self, ads_power_id: str):
         if ads_power_id in self.scheduled_ads_power_ids:

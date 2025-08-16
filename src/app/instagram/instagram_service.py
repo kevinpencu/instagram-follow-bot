@@ -35,7 +35,10 @@ class InstagramService:
         )
 
     def start_profiles(
-        self, profiles: list[Profile], max_workers: int = DEFAULT_WORKERS, accept_requests: bool = False
+        self,
+        profiles: list[Profile],
+        max_workers: int = DEFAULT_WORKERS,
+        accept_requests: bool = False,
     ):
         for profile in profiles:
             profile_status_manager.schedule_profile(profile.ads_power_id)
@@ -44,10 +47,16 @@ class InstagramService:
 
         for profile in profiles:
             get_logger().info(f"Starting profile: {profile.username}")
-            profile_executor.submit(self.run_single, profile, 1, accept_requests)
+            profile_executor.submit(
+                self.run_single, profile, 1, accept_requests
+            )
             time.sleep(PROFILE_START_DELAY)
 
-    def start_all(self, max_workers: int = DEFAULT_WORKERS, accept_requests: bool = False):
+    def start_all(
+        self,
+        max_workers: int = DEFAULT_WORKERS,
+        accept_requests: bool = False,
+    ):
         executor.submit(
             self.do_start_selected,
             AirTableProfileRepository.get_profiles(),
@@ -56,7 +65,10 @@ class InstagramService:
         )
 
     def start_selected(
-            self, ads_power_ids: list[str], max_workers: int = DEFAULT_WORKERS, accept_requests: bool = False
+        self,
+        ads_power_ids: list[str],
+        max_workers: int = DEFAULT_WORKERS,
+        accept_requests: bool = False,
     ):
         all_profiles = AirTableProfileRepository.get_profiles()
         selected_profiles = [
@@ -69,7 +81,10 @@ class InstagramService:
             return
 
         executor.submit(
-            self.do_start_selected, selected_profiles, max_workers, accept_requests
+            self.do_start_selected,
+            selected_profiles,
+            max_workers,
+            accept_requests,
         )
 
     def do_start_selected(
@@ -78,7 +93,9 @@ class InstagramService:
         max_workers: int = DEFAULT_WORKERS,
         accept_requests: bool = False,
     ):
-        self.start_profiles(selected_profiles, max_workers, accept_requests)
+        self.start_profiles(
+            selected_profiles, max_workers, accept_requests
+        )
 
     def stop_all(self):
         profile_status_manager.stop_all()
@@ -101,7 +118,10 @@ class InstagramService:
         )
 
     def prepare_profile(
-        self, profile: Profile, attempt_no: int = 1, accept_requests: bool = False
+        self,
+        profile: Profile,
+        attempt_no: int = 1,
+        accept_requests: bool = False,
     ) -> webdriver.Chrome:
         profile.refresh()
         profile_status_manager.init_profile(profile)
@@ -122,7 +142,8 @@ class InstagramService:
         adspower_response = adspower.start_profile(profile.ads_power_id)
         if (
             adspower_response is None
-            and self.on_retry(profile, attempt_no + 1, accept_requests) is True
+            and self.on_retry(profile, attempt_no + 1, accept_requests)
+            is True
         ):
             return None
 
@@ -144,7 +165,8 @@ class InstagramService:
         selenium_instance = run_selenium(adspower_response)
         if (
             selenium_instance is None
-            and self.on_retry(profile, attempt_no + 1, accept_requests) is True
+            and self.on_retry(profile, attempt_no + 1, accept_requests)
+            is True
         ):
             return None
 
@@ -225,7 +247,12 @@ class InstagramService:
                 shutdown_attempt_no + 1,
             )
 
-    def on_retry(self, profile: Profile, attempt_no: int, accept_requests: bool = False) -> bool:
+    def on_retry(
+        self,
+        profile: Profile,
+        attempt_no: int,
+        accept_requests: bool = False,
+    ) -> bool:
         get_logger().error(
             f"Scheduling retry for profile {profile.username}"
         )
@@ -237,15 +264,24 @@ class InstagramService:
         if delay_for_attempt(attempt_no) is False:
             return False
 
-        delay_executor.submit(self.run_single, profile, attempt_no, accept_requests)
+        delay_executor.submit(
+            self.run_single, profile, attempt_no, accept_requests
+        )
 
         return True
 
-    def run_single(self, profile: Profile, attempt_no: int = 1, accept_requests: bool = False):
+    def run_single(
+        self,
+        profile: Profile,
+        attempt_no: int = 1,
+        accept_requests: bool = False,
+    ):
         get_logger().info(f"Running Single: {profile.username}")
         selenium_instance = None
         try:
-            selenium_instance = self.prepare_profile(profile, attempt_no, accept_requests)
+            selenium_instance = self.prepare_profile(
+                profile, attempt_no, accept_requests
+            )
 
             if selenium_instance is None:
                 get_logger().error(
@@ -259,7 +295,7 @@ class InstagramService:
             logged_in = False
 
             insta_wrapper = InstagramWrapper(selenium_instance)
-            
+
             if accept_requests:
                 get_logger().info(
                     "Accepting Follow Requests Before Following..."
@@ -268,13 +304,21 @@ class InstagramService:
 
                 # Logged Out
                 if accepted_users is None:
-                    self.on_handle_status(Checkpoint.AccountLoggedOut, profile, selenium_instance, processed_targets, "")
+                    self.on_handle_status(
+                        Checkpoint.AccountLoggedOut,
+                        profile,
+                        selenium_instance,
+                        processed_targets,
+                        "",
+                    )
                     return
 
                 if len(accepted_users) > 0:
                     follows_us = follows_us + accepted_users
                     profile.update_followsus_targets(follows_us)
-                    profile_status_manager.set_total_accepted_accounts(profile.ads_power_id, len(accepted_users))
+                    profile_status_manager.set_total_accepted_accounts(
+                        profile.ads_power_id, len(accepted_users)
+                    )
 
             for username in targets:
                 # Check if stop action was initiated

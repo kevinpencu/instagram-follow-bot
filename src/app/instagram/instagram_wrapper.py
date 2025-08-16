@@ -9,7 +9,7 @@ from app.instagram.checkpoint_conditions import (
 from app.instagram.checkpoint_bypass import BYPASSES
 from app.instagram.actions import (
     create_follow_action,
-    AcceptRequestsAction
+    AcceptRequestsAction,
 )
 from app.selenium_utils.utils import navigate_to
 from app.core.logger import get_logger
@@ -32,7 +32,9 @@ class InstagramWrapper:
 
         action = AcceptRequestsAction()
         if action.run(self.driver) is False:
-            get_logger().error("[INSTAWRAPPER]: Accepting requests failed")
+            get_logger().error(
+                "[INSTAWRAPPER]: Accepting requests failed"
+            )
             return []
         get_logger().info("[INSTAWRAPPER]: Accepting requests success")
         return action.accepted_users

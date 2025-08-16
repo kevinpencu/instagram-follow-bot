@@ -50,20 +50,26 @@ class AcceptRequestsAction(Action):
         super().__init__([])
         self.accepted_users = []
 
-
-    def press_notifications_btn(self, driver: webdriver.Chrome, small_view: bool = False):
+    def press_notifications_btn(
+        self, driver: webdriver.Chrome, small_view: bool = False
+    ):
         if small_view:
-            small_view_tag = driver.find_elements(By.XPATH, "//a[@href='/notifications/']")
+            small_view_tag = driver.find_elements(
+                By.XPATH, "//a[@href='/notifications/']"
+            )
             if len(small_view_tag) <= 0:
                 return False
 
-            driver.execute_script("arguments[0].click();", small_view_tag[0])
+            driver.execute_script(
+                "arguments[0].click();", small_view_tag[0]
+            )
             time.sleep(7)
 
             return "notifications" in driver.current_url
 
-
-        noti_btn = driver.find_elements(By.XPATH, "//*[@aria-label='Notifications']")
+        noti_btn = driver.find_elements(
+            By.XPATH, "//*[@aria-label='Notifications']"
+        )
         if len(noti_btn) <= 0:
             return self.press_notifications_btn(driver, True)
 
@@ -76,28 +82,36 @@ class AcceptRequestsAction(Action):
 
         return self.press_notifications_btn(driver, True)
 
-
     def run(self, driver: webdriver.Chrome) -> bool:
         if self.press_notifications_btn(driver) is False:
             return False
 
-        follow_requests_btn = driver.find_elements(By.XPATH, "//span[text()='Follow requests'] | //span[text()='Follow request']")
+        follow_requests_btn = driver.find_elements(
+            By.XPATH,
+            "//span[text()='Follow requests'] | //span[text()='Follow request']",
+        )
         if len(follow_requests_btn) <= 0:
             return True
 
         follow_requests_btn[0].click()
         time.sleep(4)
 
-        confirm_btns = driver.find_elements(By.XPATH, "//div[text()='Confirm']")
+        confirm_btns = driver.find_elements(
+            By.XPATH, "//div[text()='Confirm']"
+        )
         if len(confirm_btns) <= 0:
             return True
 
         for confirm_btn in confirm_btns:
-            main_container = confirm_btn.find_elements(By.XPATH, "../../..")
+            main_container = confirm_btn.find_elements(
+                By.XPATH, "../../.."
+            )
             if len(main_container) <= 0:
                 continue
 
-            children_of_main = main_container[0].find_elements(By.XPATH, "./*")
+            children_of_main = main_container[0].find_elements(
+                By.XPATH, "./*"
+            )
             if len(children_of_main) <= 1:
                 continue
 
@@ -123,9 +137,13 @@ class AcceptRequestsAction(Action):
 
 
 def create_follow_action() -> Action:
-    dynamic_delay = random.uniform(FOLLOW_ACTION_DELAY_MINIMUM, FOLLOW_ACTION_DELAY_MAXIMUM)
+    dynamic_delay = random.uniform(
+        FOLLOW_ACTION_DELAY_MINIMUM, FOLLOW_ACTION_DELAY_MAXIMUM
+    )
     return Action(
-        xpath_queries=["//button[.//div[normalize-space(text())='Follow']]"],
+        xpath_queries=[
+            "//button[.//div[normalize-space(text())='Follow']]"
+        ],
         sleep=dynamic_delay,
         all=False,
     )
