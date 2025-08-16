@@ -81,7 +81,7 @@ class AcceptRequestsAction(Action):
         if self.press_notifications_btn(driver) is False:
             return False
 
-        follow_requests_btn = driver.find_elements(By.XPATH, "//span[text()='Follow requests']")
+        follow_requests_btn = driver.find_elements(By.XPATH, "//span[text()='Follow requests'] | //span[text()='Follow request']")
         if len(follow_requests_btn) <= 0:
             return True
 
