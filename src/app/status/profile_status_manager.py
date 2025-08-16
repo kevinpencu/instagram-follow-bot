@@ -50,6 +50,10 @@ class ProfileStatusManager:
         self._profile_stats.set_total(ads_power_id, total)
 
     @thread_safe
+    def set_total_accepted_accounts(self, ads_power_id: str, total: int):
+        self._profile_stats.set_total_accepted_accounts(ads_power_id, total)
+
+    @thread_safe
     def increment_total_followed(self, ads_power_id: str):
         self._profile_stats.increment_total_followed(ads_power_id)
 

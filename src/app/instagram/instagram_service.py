@@ -268,6 +268,7 @@ class InstagramService:
                 if len(accepted_users) > 0:
                     follows_us = follows_us + accepted_users
                     profile.update_followsus_targets(follows_us)
+                    profile_status_manager.set_total_accepted_accounts(profile.ads_power_id, len(accepted_users))
 
             for username in targets:
                 # Check if stop action was initiated
