@@ -259,6 +259,10 @@ class InstagramService:
             logged_in = False
 
             insta_wrapper = InstagramWrapper(selenium_instance)
+            # shutdown profile
+            if insta_wrapper.is_logged_in() is False:
+                self.on_handle_status(Checkpoint.AccountLoggedOut, profile, selenium_instance, processed_targets, "")
+                return
             
             if accept_requests:
                 get_logger().info(
