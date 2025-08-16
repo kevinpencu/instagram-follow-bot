@@ -29,7 +29,9 @@ class InstagramWrapper:
         time.sleep(2)
         action = AcceptRequestsAction()
         if action.run(self.driver) is False:
+            get_logger().error("[INSTAWRAPPER]: Accepting requests failed")
             return []
+        get_logger().info("[INSTAWRAPPER]: Accepting requests success")
         return action.accepted_users
 
     def get_cp(self, before_action: bool = False) -> Checkpoint:

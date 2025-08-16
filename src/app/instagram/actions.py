@@ -50,7 +50,7 @@ class AcceptRequestsAction(Action):
         self.accepted_users = []
 
     def run(self, driver: webdriver.Chrome) -> bool:
-        notifications_btn = driver.find_elements(By.XPATH, "//span[text()='Notifications']")
+        notifications_btn = driver.find_elements(By.XPATH, "//*[@aria-label='Notifications']")
         if len(notifications_btn) <= 0:
             return False
 
