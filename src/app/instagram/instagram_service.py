@@ -295,6 +295,8 @@ class InstagramService:
                     profile.reached_follow_limit_date.replace('Z', '+00:00')
                 )
                 current_time = datetime.now(timezone.utc)
+                get_logger().info(f"Limit: {follow_limit_date}")
+                get_logger().info(f"Current: {current_time}")
                 
                 if follow_limit_date > current_time:
                     get_logger().info(
