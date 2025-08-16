@@ -33,6 +33,7 @@ class ActiveProfileStats:
     total_followed: int
     total_follow_failed: int
     total_already_followed: int
+    total_accepted_accounts: int
 
     def is_ok(self):
         return (
@@ -55,7 +56,7 @@ class ProfileStatusContext:
         self.unschedule(ads_power_id)
 
         self.active_profiles[ads_power_id] = ActiveProfileStats(
-            ads_power_id, username, status, 0, 0, 0, 0
+            ads_power_id, username, status, 0, 0, 0, 0, 0
         )
 
     def get_profile(self, ads_power_id: str) -> ActiveProfileStats:
@@ -100,6 +101,15 @@ class ProfileStatusContext:
         if prof is None:
             return
         prof.total_already_followed = prof.total_already_followed + 1
+
+    def set_total_accepted_accounts(
+        self, ads_power_id: str
+    ) -> ActiveProfileStats:
+        prof = self.get_profile(ads_power_id)
+        if prof is None:
+            return
+        prof.total_accepted_accounts = prof.total_accepted_accounts + 1
+
 
     def schedule(self, ads_power_id: str):
         if ads_power_id in self.scheduled_ads_power_ids:
