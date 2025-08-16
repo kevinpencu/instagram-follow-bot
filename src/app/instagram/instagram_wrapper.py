@@ -1,4 +1,5 @@
 from selenium import webdriver
+import time
 from app.instagram.enums.checkpoint import Checkpoint
 from app.instagram.checkpoint_conditions import (
     CONDITIONS,
@@ -24,6 +25,8 @@ class InstagramWrapper:
         return logged_in_condition.is_active(self.driver)
 
     def accept_follow_requests(self) -> list[str]:
+        navigate_to(self.driver, f"https://instagram.com")
+        time.sleep(2)
         action = AcceptRequestsAction()
         if action.run(self.driver) is False:
             return []
