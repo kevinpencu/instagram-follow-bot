@@ -2,6 +2,7 @@ import time
 import random
 from selenium.webdriver.common.by import By
 from selenium import webdriver
+from app.selenium_utils.utils import navigate_to
 from selenium.common.exceptions import ElementNotInteractableException
 from dataclasses import dataclass
 from app.core.logger import get_logger
@@ -21,8 +22,12 @@ class Action:
     xpath_queries: list[str]
     sleep: float = 0
     all: bool = False
+    navigate_to_before_start: str = ""
 
     def run(self, driver: webdriver.Chrome) -> bool:
+        if len(self.navigate_to_before_start) > 0:
+            navigate_to(driver, self.navigate_to_before_start)
+
         for xpath_query in self.xpath_queries:
             elems = driver.find_elements(By.XPATH, xpath_query)
             if len(elems) <= 0:
@@ -146,4 +151,13 @@ def create_follow_action() -> Action:
         ],
         sleep=dynamic_delay,
         all=False,
+    )
+
+
+def create_unfollow_action(target: str) -> Action:
+    return Action(
+        ["//div[text()='Following']", "//span[text()='Unfollow']"],
+        all=False,
+        sleep=4,
+        navigate_to_before_start=f"https://instagram.com/{target}",
     )
