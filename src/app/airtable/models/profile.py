@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.airtable.helper import (
     get_table,
     map_attachment_field_to_urls,
@@ -128,11 +128,10 @@ class Profile:
         get_table().update(self.airtable_id, {"Status": [status]})
 
     def update_follow_limit_reached(self):
+        follow_limit_time = datetime.now(timezone.utc) + timedelta(hours=24)
         get_table().update(
             self.airtable_id,
             {
-                REACHED_FOLLOW_LIMIT: datetime.now(
-                    timezone.utc
-                ).isoformat()
+                REACHED_FOLLOW_LIMIT: follow_limit_time.isoformat()
             },
         )
