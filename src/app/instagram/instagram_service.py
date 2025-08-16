@@ -230,12 +230,13 @@ class InstagramService:
             f"Scheduling retry for profile {profile.username}"
         )
 
-        if delay_for_attempt(attempt_no) is False:
-            return False
-
         profile_status_manager.set_status(
             profile.ads_power_id, BotStatus.Retrying
         )
+
+        if delay_for_attempt(attempt_no) is False:
+            return False
+
         delay_executor.submit(self.run_single, profile, attempt_no, accept_requests)
 
         return True
