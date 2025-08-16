@@ -248,9 +248,6 @@ class InstagramService:
 
         return True
 
-    def accept_requests(self, driver: webdriver.Chrome) -> bool:
-        pass
-
     def run_single(self, profile: Profile, attempt_no: int = 1):
         get_logger().info(f"Running Single: {profile.username}")
         selenium_instance = None
@@ -265,13 +262,18 @@ class InstagramService:
 
             targets = profile.download_targets()
             processed_targets = profile.download_processed_targets()
+            follows_us = profile.download_followsus_targets()
             logged_in = False
 
             insta_wrapper = InstagramWrapper(selenium_instance)
             get_logger().info(
                 "Accepting Follow Requests Before Following..."
             )
-            insta_wrapper.accept_follow_requests()
+
+            accepted_users = insta_wrapper.accept_follow_requests()
+            if len(accepted_users) > 0:
+                follows_us = follows_us + accepted_users
+                profile.update_followsus_targets(follows_us)
 
             for username in targets:
                 # Check if stop action was initiated

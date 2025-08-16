@@ -98,21 +98,6 @@ class AcceptRequestsAction(Action):
         return True
 
 
-@dataclass
-class ActionChain:
-    preconditions: list[CheckpointCondition]
-    actions: list[Action]
-
-    def meets_conditions(self, driver: webdriver.Chrome) -> bool:
-        return all(a.is_active(driver) for a in self.preconditions)
-
-    def run(self, driver: webdriver.Chrome) -> bool:
-        if self.meets_conditions(driver) is False:
-            return False
-
-        return all(a.run(driver) for a in self.actions)
-
-
 def create_follow_action() -> Action:
     dynamic_delay = random.uniform(FOLLOW_ACTION_DELAY_MINIMUM, FOLLOW_ACTION_DELAY_MAXIMUM)
     return Action(
@@ -120,23 +105,3 @@ def create_follow_action() -> Action:
         sleep=dynamic_delay,
         all=False,
     )
-
-
-ACCEPT_FOLLOW_REQUESTS_CHAIN = ActionChain(
-    preconditions=[logged_in_condition],
-    actions=[
-        Action(
-            xpath_queries=["//span[text()='Notifications']"],
-            sleep=3,
-            all=False,
-        ),
-        Action(
-            xpath_queries=["//span[text()='Follow requests']"],
-            sleep=3,
-            all=False,
-        ),
-        Action(
-            xpath_queries=["//div[text()='Confirm']"], all=True, sleep=1
-        ),
-    ],
-)

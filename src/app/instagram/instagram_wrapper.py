@@ -8,7 +8,7 @@ from app.instagram.checkpoint_conditions import (
 from app.instagram.checkpoint_bypass import BYPASSES
 from app.instagram.actions import (
     create_follow_action,
-    ACCEPT_FOLLOW_REQUESTS_CHAIN,
+    AcceptRequestsAction
 )
 from app.selenium_utils.utils import navigate_to
 from app.core.logger import get_logger
@@ -23,8 +23,11 @@ class InstagramWrapper:
     def is_logged_in(self):
         return logged_in_condition.is_active(self.driver)
 
-    def accept_follow_requests(self):
-        return ACCEPT_FOLLOW_REQUESTS_CHAIN.run(self.driver)
+    def accept_follow_requests(self) -> list[str]:
+        action = AcceptRequestsAction()
+        if action.run(self.driver) is False:
+            return []
+        return action.accepted_users
 
     def get_cp(self, before_action: bool = False) -> Checkpoint:
         for cond in CONDITIONS.keys():
