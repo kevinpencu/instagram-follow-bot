@@ -109,16 +109,6 @@ class InstagramService:
             profile.ads_power_id, BotStatus.Preparing
         )
 
-        get_logger().info(
-            f"Running delay for profile: {profile.username}"
-        )
-
-        if delay_for_attempt(attempt_no) is False:
-            profile_status_manager.set_status(
-                profile.ads_power_id, BotStatus.MaxRetries
-            )
-            return None
-
         usernames = profile.download_targets()
         if len(usernames) <= 0:
             profile_status_manager.set_status(
@@ -236,12 +226,12 @@ class InstagramService:
             )
 
     def on_retry(self, profile: Profile, attempt_no: int, accept_requests: bool = False) -> bool:
-        if delay_for_attempt(attempt_no) is False:
-            return False
-
         get_logger().error(
             f"Scheduling retry for profile {profile.username}"
         )
+
+        if delay_for_attempt(attempt_no) is False:
+            return False
 
         profile_status_manager.set_status(
             profile.ads_power_id, BotStatus.Retrying
