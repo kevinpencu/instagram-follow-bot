@@ -56,10 +56,11 @@ class ApiService {
     return this.request<StatusResponse>('/status');
   }
 
-  async startAll(maxWorkers?: number, acceptFollowRequests?: boolean): Promise<{}> {
+  async startAll(maxWorkers?: number, acceptFollowRequests?: boolean, unfollowUsers?: boolean): Promise<{}> {
     const body: any = {};
     if (maxWorkers) body.maxWorkers = maxWorkers;
     if (acceptFollowRequests !== undefined) body.acceptFollowRequests = acceptFollowRequests;
+    if (unfollowUsers !== undefined) body.unfollowUsers = unfollowUsers;
     
     return this.request<{}>('/start-all', {
       method: 'POST',
@@ -74,10 +75,11 @@ class ApiService {
   }
 
 
-  async startSelected(adsPowerIds: string[], maxWorkers?: number, acceptFollowRequests?: boolean): Promise<{}> {
+  async startSelected(adsPowerIds: string[], maxWorkers?: number, acceptFollowRequests?: boolean, unfollowUsers?: boolean): Promise<{}> {
     const body: any = { adsPowerIds };
     if (maxWorkers) body.maxWorkers = maxWorkers;
     if (acceptFollowRequests !== undefined) body.acceptFollowRequests = acceptFollowRequests;
+    if (unfollowUsers !== undefined) body.unfollowUsers = unfollowUsers;
     
     return this.request<{}>('/start-selected', {
       method: 'POST',

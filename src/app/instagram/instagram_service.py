@@ -39,6 +39,7 @@ class InstagramService:
         profiles: list[Profile],
         max_workers: int = DEFAULT_WORKERS,
         accept_requests: bool = False,
+        unfollow_users: bool = False,
     ):
         for profile in profiles:
             profile_status_manager.schedule_profile(profile.ads_power_id)
@@ -48,7 +49,7 @@ class InstagramService:
         for profile in profiles:
             get_logger().info(f"Starting profile: {profile.username}")
             profile_executor.submit(
-                self.run_single, profile, 1, accept_requests
+                self.run_single, profile, 1, accept_requests, unfollow_users
             )
             time.sleep(PROFILE_START_DELAY)
 
@@ -56,12 +57,14 @@ class InstagramService:
         self,
         max_workers: int = DEFAULT_WORKERS,
         accept_requests: bool = False,
+        unfollow_users: bool = False,
     ):
         executor.submit(
             self.do_start_selected,
             AirTableProfileRepository.get_profiles(),
             max_workers,
             accept_requests,
+            unfollow_users,
         )
 
     def start_selected(
@@ -69,6 +72,7 @@ class InstagramService:
         ads_power_ids: list[str],
         max_workers: int = DEFAULT_WORKERS,
         accept_requests: bool = False,
+        unfollow_users: bool = False,
     ):
         all_profiles = AirTableProfileRepository.get_profiles()
         selected_profiles = [
@@ -85,6 +89,7 @@ class InstagramService:
             selected_profiles,
             max_workers,
             accept_requests,
+            unfollow_users,
         )
 
     def do_start_selected(
@@ -92,9 +97,10 @@ class InstagramService:
         selected_profiles: list[Profile],
         max_workers: int = DEFAULT_WORKERS,
         accept_requests: bool = False,
+        unfollow_users: bool = False,
     ):
         self.start_profiles(
-            selected_profiles, max_workers, accept_requests
+            selected_profiles, max_workers, accept_requests, unfollow_users
         )
 
     def stop_all(self):
@@ -122,6 +128,7 @@ class InstagramService:
         profile: Profile,
         attempt_no: int = 1,
         accept_requests: bool = False,
+        unfollow_users: bool = False,
     ) -> webdriver.Chrome:
         profile.refresh()
         profile_status_manager.init_profile(profile)
@@ -142,7 +149,7 @@ class InstagramService:
         adspower_response = adspower.start_profile(profile.ads_power_id)
         if (
             adspower_response is None
-            and self.on_retry(profile, attempt_no + 1, accept_requests)
+            and self.on_retry(profile, attempt_no + 1, accept_requests, unfollow_users)
             is True
         ):
             return None
@@ -165,7 +172,7 @@ class InstagramService:
         selenium_instance = run_selenium(adspower_response)
         if (
             selenium_instance is None
-            and self.on_retry(profile, attempt_no + 1, accept_requests)
+            and self.on_retry(profile, attempt_no + 1, accept_requests, unfollow_users)
             is True
         ):
             return None
@@ -252,6 +259,7 @@ class InstagramService:
         profile: Profile,
         attempt_no: int,
         accept_requests: bool = False,
+        unfollow_users: bool = False,
     ) -> bool:
         get_logger().error(
             f"Scheduling retry for profile {profile.username}"
@@ -265,7 +273,7 @@ class InstagramService:
             return False
 
         delay_executor.submit(
-            self.run_single, profile, attempt_no, accept_requests
+            self.run_single, profile, attempt_no, accept_requests, unfollow_users
         )
 
         return True
@@ -275,12 +283,13 @@ class InstagramService:
         profile: Profile,
         attempt_no: int = 1,
         accept_requests: bool = False,
+        unfollow_users: bool = False
     ):
         get_logger().info(f"Running Single: {profile.username}")
         selenium_instance = None
         try:
             selenium_instance = self.prepare_profile(
-                profile, attempt_no, accept_requests
+                profile, attempt_no, accept_requests, unfollow_users
             )
 
             if selenium_instance is None:
@@ -319,6 +328,19 @@ class InstagramService:
                     profile_status_manager.set_total_accepted_accounts(
                         profile.ads_power_id, len(accepted_users)
                     )
+
+            if unfollow_users:
+                targets_to_unfollow = []
+                follows_us = profile.download_followsus_targets()
+                we_follow = profile.download_processed_targets()
+
+                for x in we_follow:
+                    if x not in follows_us:
+                        targets_to_unfollow.append(x)
+
+                get_logger().info(f"[INSTAGRAMSERVICE]: Unfollowing {len(targets_to_unfollow)} users")
+
+                insta_wrapper.unfollow_users(targets_to_unfollow)
 
             for username in targets:
                 # Check if stop action was initiated

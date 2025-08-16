@@ -35,6 +35,11 @@ class MainApiController:
         body = request.get_json() or {}
         return body.get("acceptFollowRequests", False)
 
+    # helper method
+    def get_unfollow_users(self):
+        body = request.get_json() or {}
+        return body.get("unfollowUsers", False)
+
     def get_profiles(self):
         try:
             return AirTableProfileRepository().get_profiles()
@@ -61,7 +66,7 @@ class MainApiController:
     def start_all(self):
         try:
             instagram_service.start_all(
-                self.get_max_workers(), self.get_accept_follow_requests()
+                self.get_max_workers(), self.get_accept_follow_requests(), self.get_unfollow_users()
             )
         except Exception as e:
             error_msg = f"\n{str(e)} \n {traceback.format_exc()}"
@@ -82,6 +87,7 @@ class MainApiController:
                 self.get_adspowerids(),
                 self.get_max_workers(),
                 self.get_accept_follow_requests(),
+                self.get_unfollow_users(),
             )
         except Exception as e:
             error_msg = f"\n{str(e)} \n {traceback.format_exc()}"

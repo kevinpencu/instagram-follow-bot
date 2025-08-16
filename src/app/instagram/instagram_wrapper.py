@@ -10,6 +10,7 @@ from app.instagram.checkpoint_bypass import BYPASSES
 from app.instagram.actions import (
     create_follow_action,
     AcceptRequestsAction,
+    create_unfollow_action
 )
 from app.selenium_utils.utils import navigate_to
 from app.core.logger import get_logger
@@ -38,6 +39,11 @@ class InstagramWrapper:
             return []
         get_logger().info("[INSTAWRAPPER]: Accepting requests success")
         return action.accepted_users
+
+    def unfollow_users(self, users: list[str]):
+        for user in users:
+            create_unfollow_action(user).run(self.driver)
+        pass
 
     def get_cp(self, before_action: bool = False) -> Checkpoint:
         for cond in CONDITIONS.keys():
