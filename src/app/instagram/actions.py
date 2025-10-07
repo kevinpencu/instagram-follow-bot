@@ -1,0 +1,163 @@
+import time
+import random
+from selenium.webdriver.common.by import By
+from selenium import webdriver
+from app.selenium_utils.utils import navigate_to
+from selenium.common.exceptions import ElementNotInteractableException
+from dataclasses import dataclass
+from app.core.logger import get_logger
+from app.core.constants import (
+    FOLLOW_ACTION_DELAY_MINIMUM,
+    FOLLOW_ACTION_DELAY_MAXIMUM,
+)
+from app.instagram.checkpoint_conditions import (
+    Checkpoint,
+    logged_in_condition,
+    CheckpointCondition,
+)
+
+
+@dataclass
+class Action:
+    xpath_queries: list[str]
+    sleep: float = 0
+    all: bool = False
+    navigate_to_before_start: str = ""
+
+    def run(self, driver: webdriver.Chrome) -> bool:
+        if len(self.navigate_to_before_start) > 0:
+            navigate_to(driver, self.navigate_to_before_start)
+
+        for xpath_query in self.xpath_queries:
+            elems = driver.find_elements(By.XPATH, xpath_query)
+            if len(elems) <= 0:
+                return False
+
+            try:
+                if self.all:
+                    for x in elems:
+                        x.click()
+                        time.sleep(self.sleep)
+                else:
+                    elems[0].click()
+                    time.sleep(self.sleep)
+            except Exception as e:
+                get_logger().error(f"Failed to run click: {str(e)}")
+                return False
+
+        return True
+
+
+class AcceptRequestsAction(Action):
+    accepted_users: list[str]
+
+    def __init__(self):
+        super().__init__([])
+        self.accepted_users = []
+
+    def press_notifications_btn(
+        self, driver: webdriver.Chrome, small_view: bool = False
+    ):
+        if small_view:
+            small_view_tag = driver.find_elements(
+                By.XPATH, "//a[@href='/notifications/']"
+            )
+            if len(small_view_tag) <= 0:
+                return False
+
+            driver.execute_script(
+                "arguments[0].click();", small_view_tag[0]
+            )
+            time.sleep(7)
+
+            return "notifications" in driver.current_url
+
+        noti_btn = driver.find_elements(
+            By.XPATH, "//*[@aria-label='Notifications']"
+        )
+        if len(noti_btn) <= 0:
+            return self.press_notifications_btn(driver, True)
+
+        try:
+            noti_btn[0].click()
+            time.sleep(7)
+            return True
+        except Exception as e:
+            pass
+
+        return self.press_notifications_btn(driver, True)
+
+    def run(self, driver: webdriver.Chrome) -> bool:
+        if self.press_notifications_btn(driver) is False:
+            return False
+
+        follow_requests_btn = driver.find_elements(
+            By.XPATH,
+            "//span[text()='Follow requests'] | //span[text()='Follow request']",
+        )
+        if len(follow_requests_btn) <= 0:
+            return True
+
+        follow_requests_btn[0].click()
+        time.sleep(4)
+
+        confirm_btns = driver.find_elements(
+            By.XPATH, "//div[text()='Confirm']"
+        )
+        if len(confirm_btns) <= 0:
+            return True
+
+        for confirm_btn in confirm_btns:
+            main_container = confirm_btn.find_elements(
+                By.XPATH, "../../.."
+            )
+            if len(main_container) <= 0:
+                continue
+
+            children_of_main = main_container[0].find_elements(
+                By.XPATH, "./*"
+            )
+            if len(children_of_main) <= 1:
+                continue
+
+            name_container = children_of_main[1]
+            link_tag = name_container.find_elements(By.XPATH, "./*")
+            if len(link_tag) <= 0:
+                continue
+
+            username = link_tag[0].find_elements(By.XPATH, "./*")
+            if len(username) <= 0:
+                continue
+
+            username_value = username[0].text
+            if len(username_value) <= 0:
+                continue
+
+            self.accepted_users.append(username_value)
+
+            confirm_btn.click()
+            time.sleep(2.5)
+
+        return True
+
+
+def create_follow_action() -> Action:
+    dynamic_delay = random.uniform(
+        FOLLOW_ACTION_DELAY_MINIMUM, FOLLOW_ACTION_DELAY_MAXIMUM
+    )
+    return Action(
+        xpath_queries=[
+            "//button[.//div[normalize-space(text())='Follow']]"
+        ],
+        sleep=dynamic_delay,
+        all=False,
+    )
+
+
+def create_unfollow_action(target: str) -> Action:
+    return Action(
+        ["//div[text()='Following']", "//span[text()='Unfollow']"],
+        all=False,
+        sleep=4,
+        navigate_to_before_start=f"https://instagram.com/{target}",
+    )

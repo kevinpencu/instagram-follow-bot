@@ -1,0 +1,33 @@
+import logging
+import inspect
+from app.core.config import get_cfg
+import sys
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+
+log_to_file = get_cfg()["settings"]["logToFile"]
+
+if log_to_file != "false" and log_to_file is not None:
+    log_file_path = "app.log"
+    log_formatter = logging.Formatter(
+        "%(asctime)s %(levelname)s %(message)s"
+    )
+
+    file_handler = logging.FileHandler(log_file_path)
+    file_handler.setFormatter(log_formatter)
+    file_handler.setLevel(logging.DEBUG)
+
+    logging.getLogger().addHandler(file_handler)
+    logging.getLogger().setLevel(logging.DEBUG)
+
+    sys.stdout = open(log_file_path, "a")
+    sys.stderr = open(log_file_path, "a")
+
+
+def get_logger():
+    frame = inspect.stack()[1]
+    module = inspect.getmodule(frame[0])
+    return logging.getLogger(module.__name__ if module else "__main__")
