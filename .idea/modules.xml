@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/instagram_bot.iml" filepath="$PROJECT_DIR$/.idea/instagram_bot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/instagram-automation-bot.iml" filepath="$PROJECT_DIR$/.idea/instagram-automation-bot.iml" />
     </modules>
   </component>
 </project>

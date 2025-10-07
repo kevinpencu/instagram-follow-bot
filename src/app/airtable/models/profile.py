@@ -12,9 +12,11 @@ DEFAULT_ATTACHMENT_FILE_NAME = "usernames.txt"
 TARGETS_FIELD_COLUMN = "Targets"
 ADSPOWER_ID_COLUMN = "AdsPower ID"
 USERNAME_COLUMN = "Username"
+PROFILE_NAME_COLUMN = "Profile Name"
 ALREADY_FOLLOWED_COLUMN = "Already Followed"
 FOLLOWS_US_COLUMN = "Follows Us"
 REACHED_FOLLOW_LIMIT = "Reached Follow Limit"
+LAST_RUN_FOLLOWS = "Last run follows"
 
 
 @dataclass
@@ -22,6 +24,7 @@ class Profile:
     airtable_id: str
     ads_power_id: str
     username: str
+    profile_name: str
     target_download_urls: list[str]
     processed_targets_download_urls: list[str]
     followsus_targets_download_urls: list[str]
@@ -34,6 +37,7 @@ class Profile:
             airtable_id=x["id"],
             ads_power_id=x["fields"][ADSPOWER_ID_COLUMN],
             username=x["fields"][USERNAME_COLUMN],
+            profile_name=x["fields"].get(PROFILE_NAME_COLUMN, ""),
             target_download_urls=map_attachment_field_to_urls(
                 x["fields"][TARGETS_FIELD_COLUMN]
             ),
@@ -133,5 +137,13 @@ class Profile:
             self.airtable_id,
             {
                 REACHED_FOLLOW_LIMIT: follow_limit_time.isoformat()
+            },
+        )
+
+    def update_last_run_follows(self, follow_count: int):
+        get_table().update(
+            self.airtable_id,
+            {
+                LAST_RUN_FOLLOWS: follow_count
             },
         )

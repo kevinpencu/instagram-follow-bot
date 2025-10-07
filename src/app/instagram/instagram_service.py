@@ -2,6 +2,7 @@ from app.airtable.models.profile import Profile
 from app.core.executor import get_executor, delay_executor, executor
 import traceback
 import time
+import random
 from datetime import datetime, timezone
 from app.airtable.enums.profile_status import AirtableProfileStatus
 from selenium import webdriver
@@ -22,6 +23,8 @@ from app.core.constants import (
     PROFILE_START_DELAY,
     MAX_SHUTDOWN_ATTEMPTS,
     SHUTDOWN_RETRY_DELAY,
+    FOLLOW_LIMIT_MIN,
+    FOLLOW_LIMIT_MAX,
 )
 from app.instagram.handlers.checkpoint_handlers import (
     create_handler_registry,
@@ -230,6 +233,12 @@ class InstagramService:
             )
             return
 
+        # Update last run follows count in AirTable
+        get_logger().info(
+            f"Updating AirTable with {stats.total_followed} follows for profile {profile.username}"
+        )
+        profile.update_last_run_follows(stats.total_followed)
+
         profile_status_manager.set_status(profile.ads_power_id, status)
 
         try:
@@ -287,7 +296,11 @@ class InstagramService:
         unfollow_users: bool = False
     ):
         get_logger().info(f"Running Single: {profile.username}")
-        
+
+        # Generate random follow limit for this session
+        follow_limit = random.randint(FOLLOW_LIMIT_MIN, FOLLOW_LIMIT_MAX)
+        get_logger().info(f"Follow limit for this session: {follow_limit}")
+
         # Check if profile is currently follow blocked
         if profile.reached_follow_limit_date:
             try:
@@ -297,7 +310,7 @@ class InstagramService:
                 current_time = datetime.now(timezone.utc)
                 get_logger().info(f"Limit: {follow_limit_date}")
                 get_logger().info(f"Current: {current_time}")
-                
+
                 if follow_limit_date > current_time:
                     get_logger().info(
                         f"Profile {profile.username} is follow blocked until {follow_limit_date}, skipping..."
@@ -328,6 +341,7 @@ class InstagramService:
             processed_targets = profile.download_processed_targets()
             follows_us = profile.download_followsus_targets()
             logged_in = False
+            session_follow_count = 0
 
             insta_wrapper = InstagramWrapper(selenium_instance)
 
@@ -377,6 +391,19 @@ class InstagramService:
                 ):
                     break
 
+                # Check if follow limit reached
+                if session_follow_count >= follow_limit:
+                    get_logger().info(
+                        f"Profile {profile.username} reached follow limit ({follow_limit}), shutting down..."
+                    )
+                    self.shutdown_profile(
+                        profile,
+                        selenium_instance,
+                        processed_targets,
+                        BotStatus.FollowLimitReached,
+                    )
+                    return
+
                 # Check if target is already processed
                 if username in processed_targets:
                     profile_status_manager.increment_already_followed(
@@ -386,8 +413,9 @@ class InstagramService:
 
                 try:
                     # Run follow action
+                    cp = insta_wrapper.follow_action(username)
                     res = self.on_handle_status(
-                        insta_wrapper.follow_action(username),
+                        cp,
                         profile,
                         selenium_instance,
                         processed_targets,
@@ -397,6 +425,13 @@ class InstagramService:
                     # This means that the profile has been shut down
                     if res is False:
                         return
+
+                    # Increment session follow count for successful follows
+                    if cp in [Checkpoint.PageFollowed, Checkpoint.PageRequested, Checkpoint.PageFollowedOrRequested]:
+                        session_follow_count += 1
+                        get_logger().info(
+                            f"Session follow count: {session_follow_count}/{follow_limit}"
+                        )
 
                     if not logged_in:
                         logged_in = True

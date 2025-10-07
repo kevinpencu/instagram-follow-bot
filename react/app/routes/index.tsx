@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Badge } from "~/components/ui/badge";
-import { Play, PlayCircle, Settings, Loader2 } from "lucide-react";
+import { Play, PlayCircle, Settings, Loader2, Users, UserPlus, UserCheck, XCircle, CheckCircle, TrendingUp } from "lucide-react";
 import { apiService, type Profile, type ProfileStatus } from "~/lib/api";
 import { WorkerInputModal } from "~/components/worker-input-modal";
 import { statusConfig } from "~/data/status-config";
@@ -155,6 +155,29 @@ export default function Index() {
   const isAllSelected = selectedRows.size === profiles.length && profiles.length > 0;
   const isIndeterminate = selectedRows.size > 0 && selectedRows.size < profiles.length;
 
+  // Calculate total statistics across all profiles
+  const totalStats = profiles.reduce((acc, profile) => {
+    if (profile.status) {
+      acc.totalTargets += profile.status.total_accounts || 0;
+      acc.totalFollowed += profile.status.total_followed || 0;
+      acc.alreadyFollowed += profile.status.total_already_followed || 0;
+      acc.totalFailed += profile.status.total_follow_failed || 0;
+      acc.totalAccepted += profile.status.total_accepted_accounts || 0;
+    }
+    return acc;
+  }, {
+    totalTargets: 0,
+    totalFollowed: 0,
+    alreadyFollowed: 0,
+    totalFailed: 0,
+    totalAccepted: 0
+  });
+
+  // Calculate success rate
+  const successRate = totalStats.totalFollowed > 0
+    ? ((totalStats.totalFollowed / (totalStats.totalFollowed + totalStats.totalFailed)) * 100).toFixed(1)
+    : '0';
+
   const getStatusBadge = (status?: ProfileStatus) => {
     if (!status) return null;
 
@@ -220,6 +243,62 @@ export default function Index() {
         </Card>
       )}
 
+      {/* Total Statistics Section */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Total Statistics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Users className="h-4 w-4" />
+                <span className="text-xs font-medium">Total Targets</span>
+              </div>
+              <p className="text-2xl font-bold">{totalStats.totalTargets.toLocaleString()}</p>
+            </div>
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2 text-green-600">
+                <UserPlus className="h-4 w-4" />
+                <span className="text-xs font-medium">Followed</span>
+              </div>
+              <p className="text-2xl font-bold text-green-600">{totalStats.totalFollowed.toLocaleString()}</p>
+            </div>
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2 text-yellow-600">
+                <UserCheck className="h-4 w-4" />
+                <span className="text-xs font-medium">Already Followed</span>
+              </div>
+              <p className="text-2xl font-bold text-yellow-600">{totalStats.alreadyFollowed.toLocaleString()}</p>
+            </div>
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2 text-red-600">
+                <XCircle className="h-4 w-4" />
+                <span className="text-xs font-medium">Failed</span>
+              </div>
+              <p className="text-2xl font-bold text-red-600">{totalStats.totalFailed.toLocaleString()}</p>
+            </div>
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2 text-blue-600">
+                <CheckCircle className="h-4 w-4" />
+                <span className="text-xs font-medium">Accepted</span>
+              </div>
+              <p className="text-2xl font-bold text-blue-600">{totalStats.totalAccepted.toLocaleString()}</p>
+            </div>
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2 text-purple-600">
+                <TrendingUp className="h-4 w-4" />
+                <span className="text-xs font-medium">Success Rate</span>
+              </div>
+              <p className="text-2xl font-bold text-purple-600">{successRate}%</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg sm:text-xl">Fetched Profiles from API (AirTable)</CardTitle>
@@ -238,7 +317,7 @@ export default function Index() {
                       {...(isIndeterminate && { 'data-state': 'indeterminate' })}
                     />
                   </TableHead>
-                  <TableHead className="min-w-[120px]">Username</TableHead>
+                  <TableHead className="min-w-[120px]">Profile Name</TableHead>
                   <TableHead className="min-w-[100px] hidden sm:table-cell">AdsPower ID</TableHead>
                   <TableHead className="min-w-[80px] hidden md:table-cell">Status</TableHead>
                   <TableHead className="min-w-[60px] hidden lg:table-cell">Total</TableHead>
@@ -274,12 +353,12 @@ export default function Index() {
                         <Checkbox
                           checked={selectedRows.has(profile.ads_power_id)}
                           onCheckedChange={(checked) => handleSelectRow(profile.ads_power_id, checked as boolean)}
-                          aria-label={`Select ${profile.username}`}
+                          aria-label={`Select ${profile.profile_name}`}
                         />
                       </TableCell>
                       <TableCell className="font-medium">
                         <div className="flex flex-col gap-1">
-                          <span className="font-semibold">{profile.username}</span>
+                          <span className="font-semibold">{profile.profile_name}</span>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground sm:hidden">
                             <Settings className="h-3 w-3" />
                             <span>{profile.ads_power_id}</span>
