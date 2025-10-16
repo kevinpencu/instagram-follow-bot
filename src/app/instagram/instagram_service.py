@@ -145,6 +145,8 @@ class InstagramService:
             profile_status_manager.set_status(
                 profile.ads_power_id, BotStatus.NoTargets
             )
+            # Mark in Airtable that new targets are needed
+            profile.update_needs_new_targets(True)
             return None
 
         get_logger().info(
@@ -297,9 +299,40 @@ class InstagramService:
     ):
         get_logger().info(f"Running Single: {profile.username}")
 
-        # Generate random follow limit for this session
-        follow_limit = random.randint(FOLLOW_LIMIT_MIN, FOLLOW_LIMIT_MAX)
-        get_logger().info(f"Follow limit for this session: {follow_limit}")
+        # Ask user for follow mode preference
+        print(f"\n{'='*60}")
+        print(f"Starting profile: {profile.username}")
+        print(f"{'='*60}")
+        print("\nChoose follow mode:")
+        print("1. Capped (40-45 follows per session)")
+        print("2. Uncapped (follow until blocked or suspended)")
+        print(f"{'='*60}")
+
+        while True:
+            try:
+                choice = input("\nEnter your choice (1 or 2): ").strip()
+                if choice == "1":
+                    # Capped mode - use random limit
+                    follow_limit = random.randint(FOLLOW_LIMIT_MIN, FOLLOW_LIMIT_MAX)
+                    get_logger().info(f"Follow limit for this session: {follow_limit} (CAPPED MODE)")
+                    print(f"\n✓ Capped mode selected. Follow limit: {follow_limit}")
+                    break
+                elif choice == "2":
+                    # Uncapped mode - set very high limit
+                    follow_limit = 999999
+                    get_logger().info(f"UNCAPPED MODE - Will follow until blocked or suspended")
+                    print(f"\n✓ Uncapped mode selected. Will follow until blocked or suspended.")
+                    break
+                else:
+                    print("Invalid choice. Please enter 1 or 2.")
+            except (EOFError, KeyboardInterrupt):
+                # Default to capped mode if interrupted
+                follow_limit = random.randint(FOLLOW_LIMIT_MIN, FOLLOW_LIMIT_MAX)
+                get_logger().info(f"Using default capped mode. Follow limit: {follow_limit}")
+                print(f"\n✓ Using default capped mode. Follow limit: {follow_limit}")
+                break
+
+        print(f"{'='*60}\n")
 
         # Check if profile is currently follow blocked
         if profile.reached_follow_limit_date:
@@ -338,10 +371,12 @@ class InstagramService:
                 return
 
             targets = profile.download_targets()
+            private_targets = profile.download_private_targets()
             processed_targets = profile.download_processed_targets()
             follows_us = profile.download_followsus_targets()
             logged_in = False
             session_follow_count = 0
+            using_private_targets = False
 
             insta_wrapper = InstagramWrapper(selenium_instance)
 
@@ -384,7 +419,11 @@ class InstagramService:
                     targets_to_unfollow.remove(targets_to_unfollow[0])
 
 
-            for username in targets:
+            # Create combined target list: first public (targets), then private (private_targets)
+            current_targets = targets.copy()
+
+            while len(current_targets) > 0:
+                username = current_targets.pop(0)
                 # Check if stop action was initiated
                 if profile_status_manager.should_stop(
                     profile.ads_power_id
@@ -426,6 +465,22 @@ class InstagramService:
                     if res is False:
                         return
 
+                    # Check if we need to switch to private targets
+                    if res == "switch_to_private" and not using_private_targets:
+                        get_logger().info(
+                            f"Profile {profile.username} is public follow blocked, switching to private targets..."
+                        )
+                        using_private_targets = True
+                        # Clear current targets and replace with only private targets (excluding already processed)
+                        current_targets.clear()
+                        for private_target in private_targets:
+                            if private_target not in processed_targets:
+                                current_targets.append(private_target)
+                        get_logger().info(
+                            f"Switched to {len(current_targets)} private targets"
+                        )
+                        continue
+
                     # Increment session follow count for successful follows
                     if cp in [Checkpoint.PageFollowed, Checkpoint.PageRequested, Checkpoint.PageFollowedOrRequested]:
                         session_follow_count += 1
@@ -442,6 +497,12 @@ class InstagramService:
                     get_logger().error(
                         f"User: {profile.username}, Target: {username} Follow Action Failed: {error_msg}. Going to next..."
                     )
+
+            # Check if we ran out of targets (completed the list)
+            if len(current_targets) == 0 and not profile_status_manager.should_stop(profile.ads_power_id):
+                get_logger().info(f"Profile {profile.username} exhausted all available targets")
+                # Mark in Airtable that new targets are needed
+                profile.update_needs_new_targets(True)
 
             # Shutdown profile
             self.shutdown_profile(

@@ -8,6 +8,7 @@ export const statusConfig = {
   seleniumFailed: { variant: 'destructive' as const, label: 'Selenium Failed', animate: false },
   adsPowerFailed: { variant: 'destructive' as const, label: 'AdsPower Failed', animate: false },
   followblocked: { variant: 'destructive' as const, label: 'Follow Blocked', animate: false },
+  completelyFollowBlocked: { variant: 'destructive' as const, label: 'Completely Follow Blocked', animate: false },
   followLimitReached: { variant: 'outline' as const, label: 'Follow Limit Reached', animate: false },
   accountLoggedOut: { variant: 'destructive' as const, label: 'Account Logged Out', animate: false },
   badproxy: { variant: 'destructive' as const, label: 'Bad Proxy', animate: false },

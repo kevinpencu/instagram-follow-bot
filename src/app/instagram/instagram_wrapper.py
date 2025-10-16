@@ -80,10 +80,25 @@ class InstagramWrapper:
         create_follow_action().run(self.driver)
 
         cp = self.get_cp()
+
+        # Check for "Try Again Later" popup (complete follow block)
+        if cp is Checkpoint.CompletelyFollowBlocked:
+            return Checkpoint.CompletelyFollowBlocked
+
+        # If no checkpoint detected after follow action
         if cp is None:
+            # If this was a public account and follow button didn't change to Following/Requested,
+            # it means we're blocked from following public accounts
+            if is_page_private is False:
+                get_logger().info(
+                    f"[INSTAWRAPPER, TARGET: {target}]: No checkpoint after follow on public account - treating as PublicFollowBlocked"
+                )
+                return Checkpoint.PublicFollowBlocked
+            # For private accounts, generic follow block
             return Checkpoint.FollowBlocked
 
+        # Public follow block detection: Requested button on public account
         if cp is Checkpoint.PageRequested and is_page_private is False:
-            return Checkpoint.FollowBlocked
+            return Checkpoint.PublicFollowBlocked
 
         return cp

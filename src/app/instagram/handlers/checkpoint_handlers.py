@@ -148,6 +148,24 @@ class BadProxyHandler(CheckpointHandler):
         return False
 
 
+class PublicFollowBlockedHandler(CheckpointHandler):
+    def handle(self, context: HandlerContext):
+        # Don't shutdown, just signal to switch to private targets
+        # Return special value to indicate switch needed
+        return "switch_to_private"
+
+
+class CompletelyFollowBlockedHandler(CheckpointHandler):
+    def handle(self, context: HandlerContext):
+        self.shutdown_fn(
+            context.profile,
+            context.driver,
+            context.processed_targets,
+            BotStatus.CompletelyFollowBlocked,
+        )
+        return False
+
+
 def create_handler_registry(
     shutdown_fn: Callable, status_manager: ProfileStatusManager
 ):
@@ -189,5 +207,11 @@ def create_handler_registry(
             shutdown_fn, status_manager
         ),
         Checkpoint.BadProxy: BadProxyHandler(shutdown_fn, status_manager),
+        Checkpoint.PublicFollowBlocked: PublicFollowBlockedHandler(
+            shutdown_fn, status_manager
+        ),
+        Checkpoint.CompletelyFollowBlocked: CompletelyFollowBlockedHandler(
+            shutdown_fn, status_manager
+        ),
     }
     return registry

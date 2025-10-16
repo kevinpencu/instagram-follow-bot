@@ -158,30 +158,43 @@ export default function Index() {
   // Calculate total statistics across all profiles
   const totalStats = profiles.reduce((acc, profile) => {
     if (profile.status) {
-      acc.totalTargets += profile.status.total_accounts || 0;
+      acc.totalAccounts += 1; // Count total accounts (profiles)
       acc.totalFollowed += profile.status.total_followed || 0;
       acc.alreadyFollowed += profile.status.total_already_followed || 0;
-      acc.totalFailed += profile.status.total_follow_failed || 0;
       acc.totalAccepted += profile.status.total_accepted_accounts || 0;
+      // Count follow blocked accounts
+      if (profile.status.bot_status === 'followblocked') {
+        acc.followBlocked += 1;
+      }
+      // Count banned/logged out accounts
+      if (profile.status.bot_status === 'accountSuspended' || profile.status.bot_status === 'accountLoggedOut') {
+        acc.bannedLoggedOut += 1;
+      }
     }
     return acc;
   }, {
-    totalTargets: 0,
+    totalAccounts: 0,
     totalFollowed: 0,
     alreadyFollowed: 0,
-    totalFailed: 0,
+    followBlocked: 0,
+    bannedLoggedOut: 0,
     totalAccepted: 0
   });
-
-  // Calculate success rate
-  const successRate = totalStats.totalFollowed > 0
-    ? ((totalStats.totalFollowed / (totalStats.totalFollowed + totalStats.totalFailed)) * 100).toFixed(1)
-    : '0';
 
   const getStatusBadge = (status?: ProfileStatus) => {
     if (!status) return null;
 
     const config = statusConfig[status.bot_status];
+
+    // Handle unknown status gracefully
+    if (!config) {
+      return (
+        <Badge variant="secondary" className="transition-all duration-300">
+          {status.bot_status}
+        </Badge>
+      );
+    }
+
     const animationClass = config.animate ? 'animate-pulse' : '';
 
     return (
@@ -256,9 +269,9 @@ export default function Index() {
             <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Users className="h-4 w-4" />
-                <span className="text-xs font-medium">Total Targets</span>
+                <span className="text-xs font-medium">Total Accounts</span>
               </div>
-              <p className="text-2xl font-bold">{totalStats.totalTargets.toLocaleString()}</p>
+              <p className="text-2xl font-bold">{totalStats.totalAccounts.toLocaleString()}</p>
             </div>
             <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-2 text-green-600">
@@ -277,9 +290,16 @@ export default function Index() {
             <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-2 text-red-600">
                 <XCircle className="h-4 w-4" />
-                <span className="text-xs font-medium">Failed</span>
+                <span className="text-xs font-medium">Follow Blocked</span>
               </div>
-              <p className="text-2xl font-bold text-red-600">{totalStats.totalFailed.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-red-600">{totalStats.followBlocked.toLocaleString()}</p>
+            </div>
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center gap-2 text-purple-600">
+                <TrendingUp className="h-4 w-4" />
+                <span className="text-xs font-medium">Banned/Logged Out</span>
+              </div>
+              <p className="text-2xl font-bold text-purple-600">{totalStats.bannedLoggedOut.toLocaleString()}</p>
             </div>
             <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-2 text-blue-600">
@@ -287,13 +307,6 @@ export default function Index() {
                 <span className="text-xs font-medium">Accepted</span>
               </div>
               <p className="text-2xl font-bold text-blue-600">{totalStats.totalAccepted.toLocaleString()}</p>
-            </div>
-            <div className="flex flex-col space-y-1">
-              <div className="flex items-center gap-2 text-purple-600">
-                <TrendingUp className="h-4 w-4" />
-                <span className="text-xs font-medium">Success Rate</span>
-              </div>
-              <p className="text-2xl font-bold text-purple-600">{successRate}%</p>
             </div>
           </div>
         </CardContent>
@@ -323,14 +336,13 @@ export default function Index() {
                   <TableHead className="min-w-[60px] hidden lg:table-cell">Total</TableHead>
                   <TableHead className="min-w-[60px] hidden lg:table-cell">Followed</TableHead>
                   <TableHead className="min-w-[60px] hidden lg:table-cell">Already</TableHead>
-                  <TableHead className="min-w-[60px] hidden lg:table-cell">Failed</TableHead>
                   <TableHead className="min-w-[60px] hidden lg:table-cell">Accepted</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8">
+                    <TableCell colSpan={9} className="text-center py-8">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Loading profiles...
@@ -339,7 +351,7 @@ export default function Index() {
                   </TableRow>
                 ) : profiles.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       No profiles found
                     </TableCell>
                   </TableRow>
@@ -387,9 +399,6 @@ export default function Index() {
                       </TableCell>
                       <TableCell className="text-center hidden lg:table-cell">
                         {profile.status?.total_already_followed ?? '-'}
-                      </TableCell>
-                      <TableCell className="text-center hidden lg:table-cell">
-                        {profile.status?.total_follow_failed ?? '-'}
                       </TableCell>
                       <TableCell className="text-center hidden lg:table-cell">
                         {profile.status?.total_accepted_accounts ?? '-'}

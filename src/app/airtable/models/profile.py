@@ -10,6 +10,7 @@ from app.core.logger import get_logger
 
 DEFAULT_ATTACHMENT_FILE_NAME = "usernames.txt"
 TARGETS_FIELD_COLUMN = "Targets"
+PRIVATE_TARGETS_FIELD_COLUMN = "Private Targets"
 ADSPOWER_ID_COLUMN = "AdsPower ID"
 USERNAME_COLUMN = "Username"
 PROFILE_NAME_COLUMN = "Profile Name"
@@ -17,6 +18,7 @@ ALREADY_FOLLOWED_COLUMN = "Already Followed"
 FOLLOWS_US_COLUMN = "Follows Us"
 REACHED_FOLLOW_LIMIT = "Reached Follow Limit"
 LAST_RUN_FOLLOWS = "Last run follows"
+NEEDS_NEW_TARGETS = "Needs new targets"
 
 
 @dataclass
@@ -26,10 +28,12 @@ class Profile:
     username: str
     profile_name: str
     target_download_urls: list[str]
+    private_targets_download_urls: list[str]
     processed_targets_download_urls: list[str]
     followsus_targets_download_urls: list[str]
     reached_follow_limit_date: str
     cached_targets: list[str]
+    cached_private_targets: list[str]
 
     @staticmethod
     def from_dict(x: dict):
@@ -39,7 +43,10 @@ class Profile:
             username=x["fields"][USERNAME_COLUMN],
             profile_name=x["fields"].get(PROFILE_NAME_COLUMN, ""),
             target_download_urls=map_attachment_field_to_urls(
-                x["fields"][TARGETS_FIELD_COLUMN]
+                x["fields"].get(TARGETS_FIELD_COLUMN)
+            ),
+            private_targets_download_urls=map_attachment_field_to_urls(
+                x["fields"].get(PRIVATE_TARGETS_FIELD_COLUMN)
             ),
             processed_targets_download_urls=map_attachment_field_to_urls(
                 x["fields"].get(ALREADY_FOLLOWED_COLUMN)
@@ -51,6 +58,7 @@ class Profile:
                 REACHED_FOLLOW_LIMIT
             ),
             cached_targets=[],
+            cached_private_targets=[],
         )
 
     def update_usernames(self, usernames: list[str], field_column: str):
@@ -85,6 +93,7 @@ class Profile:
         new_profile = Profile.from_dict(x)
 
         self.target_download_urls = new_profile.target_download_urls
+        self.private_targets_download_urls = new_profile.private_targets_download_urls
         self.processed_targets_download_urls = (
             new_profile.processed_targets_download_urls
         )
@@ -122,6 +131,19 @@ class Profile:
             self.followsus_targets_download_urls
         )
 
+    def download_private_targets(self) -> list[str]:
+        get_logger().info(
+            f"[PROFILE]: Fetching private targets for profile {self.username}"
+        )
+
+        if len(self.cached_private_targets) > 0:
+            return self.cached_private_targets
+
+        self.cached_private_targets = download_and_parse_lines_from_url(
+            self.private_targets_download_urls
+        )
+        return self.cached_private_targets
+
     def update_processed_targets(self, usernames: list[str]):
         self.update_usernames(usernames, ALREADY_FOLLOWED_COLUMN)
 
@@ -145,5 +167,16 @@ class Profile:
             self.airtable_id,
             {
                 LAST_RUN_FOLLOWS: follow_count
+            },
+        )
+
+    def update_needs_new_targets(self, needs_targets: bool):
+        """Update the 'Needs new targets' column in Airtable"""
+        value = "Yes" if needs_targets else "No"
+        get_logger().info(f"[PROFILE]: Setting 'Needs new targets' to '{value}' for {self.username}")
+        get_table().update(
+            self.airtable_id,
+            {
+                NEEDS_NEW_TARGETS: value
             },
         )

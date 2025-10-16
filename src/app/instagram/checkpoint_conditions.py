@@ -112,6 +112,12 @@ CONDITIONS = {
         xpath_query="//div[text()='Following'] | //div[text()='Requested']",
         cond_operator=operator.gt,
     ),
+    Checkpoint.CompletelyFollowBlocked: CheckpointCondition(
+        checkpoint=Checkpoint.CompletelyFollowBlocked,
+        xpath_item_len=0,
+        xpath_query="//*[text()='Try Again Later']",
+        cond_operator=operator.gt,
+    ),
 }
 
 logged_in_condition = CheckpointCondition(

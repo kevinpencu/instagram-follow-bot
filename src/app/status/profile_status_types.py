@@ -16,6 +16,7 @@ class BotStatus(str, Enum):
     AccountLoggedOut = "accountLoggedOut"
     AccountIsSuspended = "accountSuspended"
     FollowBlocked = "followblocked"
+    CompletelyFollowBlocked = "completelyFollowBlocked"
     FollowLimitReached = "followLimitReached"
     NoTargets = "notargets"
     Done = "done"

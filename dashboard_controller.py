@@ -450,12 +450,7 @@ class ConfigManager:
                             "pre_action_delay": [2, 8],
                             "page_load_wait": [0.5, 2],
                             "follow_check_timeout": 8,
-                            "extended_break_interval": [5, 10],
-                            "extended_break_duration": [60, 120],
-                            "very_long_break_chance": 0.03,
-                            "very_long_break_duration": [300, 600],
-                            "profile_start_delay": 3,
-                            "hourly_reset_break": [600, 1200]
+                            "profile_start_delay": 3
                         },
                         "limits": {
                             "max_follows_per_hour": 35,
@@ -1297,7 +1292,7 @@ class ProfileRunner:
         from instagram_bot import InstagramFollowBot
 
         key = str(pid)
-        
+
         # Check if this profile was blocked before starting
         # Check both persistent status and Airtable status
         persistent_status = StatusManager.get_persistent_status(pid)
@@ -1305,9 +1300,14 @@ class ProfileRunner:
         with profiles_lock:
             if key in profiles:
                 airtable_status = profiles[key].get('airtable_status', 'Alive')
-        
+
         was_blocked = persistent_status == 'blocked' or airtable_status == 'Follow Block'
         is_test_mode = max_follows == 1
+
+        # Set to uncapped mode (skip if test mode)
+        if not is_test_mode:
+            max_follows = 999999
+            logger.info(f"UNCAPPED MODE - Will follow until blocked or suspended")
 
         # Update status
         with profiles_lock:
@@ -1326,11 +1326,6 @@ class ProfileRunner:
         # Extract settings
         between_follows = delay_config.get('between_follows', [8, 20])
         pre_action_delay = delay_config.get('pre_action_delay', [2, 8])
-        extended_break_interval = delay_config.get('extended_break_interval', [5, 10])
-        extended_break_duration = delay_config.get('extended_break_duration', [60, 120])
-        very_long_break_chance = delay_config.get('very_long_break_chance', 0.03)
-        very_long_break_duration = delay_config.get('very_long_break_duration', [300, 600])
-        hourly_reset_break = delay_config.get('hourly_reset_break', [600, 1200])
         max_follows_per_hour = limits_config.get('max_follows_per_hour', 35)
 
         # Get the AdsPower serial number for this profile
@@ -1384,9 +1379,6 @@ class ProfileRunner:
                 return
 
             # Follow loop
-            follows_this_hour = 0
-            hour_start_time = time.time()
-
             for i in range(max_follows):
                 # Check stop request
                 stop_requested = False
@@ -1397,18 +1389,6 @@ class ProfileRunner:
                     with profiles_lock:
                         profiles[key]['status'] = 'Stopped'
                     break
-
-                # Check hourly limits
-                current_time = time.time()
-                if current_time - hour_start_time >= 3600:
-                    follows_this_hour = 0
-                    hour_start_time = current_time
-
-                if follows_this_hour >= max_follows_per_hour:
-                    break_duration = random.uniform(hourly_reset_break[0], hourly_reset_break[1])
-                    time.sleep(break_duration)
-                    follows_this_hour = 0
-                    hour_start_time = time.time()
 
                 # Get username - prefer profile-specific, fallback to shared
                 username = ProfileSpecificUsernameManager.get_next_username_for_profile(key)
@@ -1430,7 +1410,6 @@ class ProfileRunner:
 
                 if success:
                     StatsManager.increment_follow_count(pid)
-                    follows_this_hour += 1
 
                 # Check blocks
                 if bot.is_follow_blocked:
@@ -1448,16 +1427,6 @@ class ProfileRunner:
                 # Delays
                 delay = random.uniform(between_follows[0], between_follows[1])
                 time.sleep(delay)
-
-                # Extended breaks
-                if i > 0 and i % random.randint(extended_break_interval[0], extended_break_interval[1]) == 0:
-                    long_break = random.uniform(extended_break_duration[0], extended_break_duration[1])
-                    time.sleep(long_break)
-
-                # Very long breaks
-                if random.random() < very_long_break_chance:
-                    very_long = random.uniform(very_long_break_duration[0], very_long_break_duration[1])
-                    time.sleep(very_long)
 
         except Exception as e:
             logger.error(f"Profile {pid} error: {e}")
