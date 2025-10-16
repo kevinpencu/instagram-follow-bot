@@ -299,40 +299,9 @@ class InstagramService:
     ):
         get_logger().info(f"Running Single: {profile.username}")
 
-        # Ask user for follow mode preference
-        print(f"\n{'='*60}")
-        print(f"Starting profile: {profile.username}")
-        print(f"{'='*60}")
-        print("\nChoose follow mode:")
-        print("1. Capped (40-45 follows per session)")
-        print("2. Uncapped (follow until blocked or suspended)")
-        print(f"{'='*60}")
-
-        while True:
-            try:
-                choice = input("\nEnter your choice (1 or 2): ").strip()
-                if choice == "1":
-                    # Capped mode - use random limit
-                    follow_limit = random.randint(FOLLOW_LIMIT_MIN, FOLLOW_LIMIT_MAX)
-                    get_logger().info(f"Follow limit for this session: {follow_limit} (CAPPED MODE)")
-                    print(f"\n✓ Capped mode selected. Follow limit: {follow_limit}")
-                    break
-                elif choice == "2":
-                    # Uncapped mode - set very high limit
-                    follow_limit = 999999
-                    get_logger().info(f"UNCAPPED MODE - Will follow until blocked or suspended")
-                    print(f"\n✓ Uncapped mode selected. Will follow until blocked or suspended.")
-                    break
-                else:
-                    print("Invalid choice. Please enter 1 or 2.")
-            except (EOFError, KeyboardInterrupt):
-                # Default to capped mode if interrupted
-                follow_limit = random.randint(FOLLOW_LIMIT_MIN, FOLLOW_LIMIT_MAX)
-                get_logger().info(f"Using default capped mode. Follow limit: {follow_limit}")
-                print(f"\n✓ Using default capped mode. Follow limit: {follow_limit}")
-                break
-
-        print(f"{'='*60}\n")
+        # Uncapped mode - follow until blocked or suspended
+        follow_limit = 999999
+        get_logger().info(f"UNCAPPED MODE - Will follow until blocked or suspended")
 
         # Check if profile is currently follow blocked
         if profile.reached_follow_limit_date:
